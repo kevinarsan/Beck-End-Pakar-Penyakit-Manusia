@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+  dokter
+
+  @@map("roles")
+}
+
+model User {
+  id                Int            @id @default(autoincrement())
+  username          String
+  email             String
+  password          String
+  resetToken        String?        @map("reset_token")
+  veryficationToken String?        @map("verification_token")
+  role              Role
+  profile           Profile?
+  profileDoctor     ProfileDoctor?
+  review            Review[]
+  notification      Notification[]
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Profile {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  phone     String?
+  picture   String?
+  city      String?
+  province  String?
+  country   String?
+  userId    Int      @unique @map("users_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+model ProfileDoctor {
+  id             Int                @id @default(autoincrement())
+  name           String?
+  phone          String?
+  picture        String?
+  spesialis      String?
+  description    String?
+  city           String?
+  province       String?
+  country        String?
+  userId         Int                @unique @map("users_id")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  practice       PracticeOnDoctor[]
+  hospitalDoctor hospitalOnDoctor[]
+  review         Review[]
+
+  @@map("profiles_doctor")
+}
+
+model Practice {
+  id             Int                @id @default(autoincrement())
+  days           String
+  open           String
+  close          String
+  practiceDoctor PracticeOnDoctor[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("practices")
+}
+
+model PracticeOnDoctor {
+  doctorId   Int
+  practiceId Int
+  doctor     ProfileDoctor @relation(fields: [doctorId], references: [id])
+  practice   Practice      @relation(fields: [practiceId], references: [id])
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  @@id([doctorId, practiceId])
+  @@map("practice_on_doctor")
+}
+
+model Hospital {
+  id             Int                @id @default(autoincrement())
+  name           String
+  picture        String?
+  city           String
+  province       String
+  country        String
+  location       String
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  hospitalDoctor hospitalOnDoctor[]
+
+  @@map("hospitals")
+}
+
+model hospitalOnDoctor {
+  doctorId   Int
+  hospitalId Int
+  doctor     ProfileDoctor @relation(fields: [doctorId], references: [id])
+  hospital   Hospital      @relation(fields: [hospitalId], references: [id])
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  @@id([doctorId, hospitalId])
+  @@map("hospital_on_doctor")
+}
+
+model Review {
+  id       Int            @id @default(autoincrement())
+  value    Int?
+  feedback String?
+  userId   Int            @map("user_id")
+  ratingId Int            @map("rating_id")
+  doctorId Int?           @map("doctor_id")
+  date     DateTime       @default(now())
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  rating   Rating         @relation(fields: [ratingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  doctor   ProfileDoctor? @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("reviews")
+}
+
+model Rating {
+  id     Int      @id @default(autoincrement())
+  rating Int?
+  review Review[]
+
+  @@map("ratings")
+}
+
+model Notification {
+  id      Int       @id @default(autoincrement())
+  message String?
+  time    DateTime? @default(now())
+  isRead  Boolean?  @map("is_read")
+  userId  Int       @map("user_id")
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("notifications")
+}
