@@ -1,5 +1,5 @@
-const { practice, practiceOnDoctor, profileDoctor } = require("../../models"),
-  { createNotification } = require("../../utils/notification");
+const { practice, practiceOnDoctor, profileDoctor } = require("../models"),
+  { createNotification } = require("../utils/notification");
 
 module.exports = {
   create: async (req, res, next) => {

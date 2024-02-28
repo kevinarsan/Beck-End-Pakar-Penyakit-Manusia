@@ -1,11 +1,11 @@
-const { user, profile, profileDoctor } = require("../../models"),
+const { user, profile, profileDoctor } = require("../models"),
   {
     cryptPassword,
     verifyHashed,
     jwt,
     exclude,
-  } = require("../../utils/encrypt.password"),
-  { createNotification } = require("../../utils/notification");
+  } = require("../utils/encrypt.password"),
+  { createNotification } = require("../utils/notification");
 
 module.exports = {
   registerUser: async (req, res, next) => {

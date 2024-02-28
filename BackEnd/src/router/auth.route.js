@@ -1,11 +1,9 @@
-const { checkRoles } = require("../../middlewares/check.role");
-
 const express = require("express"),
   router = express.Router(),
-  controllers = require("../../controllers/profiles/auth.controllers"),
-  { validate } = require("../../middlewares/validate"),
-  schema = require("../../validator.schemas/auth.validator"),
-  { checkToken } = require("../../middlewares/check.token");
+  controllers = require("../controllers/auth.controllers"),
+  { validate } = require("../middlewares/validate"),
+  schema = require("../validator.schemas/auth.validator"),
+  { checkToken } = require("../middlewares/check.token");
 
 router.post(
   "/register-users",

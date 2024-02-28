@@ -1,9 +1,9 @@
-const { user, profile, notification, profileDoctor } = require("../../models"),
+const { user, profile, notification, profileDoctor } = require("../models"),
   multer = require("multer"),
   upload = multer().single("picture"),
-  { exclude } = require("../../utils/encrypt.password"),
-  { imageKit } = require("../../config"),
-  { createNotification } = require("../../utils/notification");
+  { exclude } = require("../utils/encrypt.password"),
+  { imageKit } = require("../config"),
+  { createNotification } = require("../utils/notification");
 
 module.exports = {
   update: async (req, res, next) => {

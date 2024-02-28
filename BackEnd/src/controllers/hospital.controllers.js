@@ -3,9 +3,9 @@ const {
     profileDoctor,
     hospitalOnDoctor,
     user,
-  } = require("../../models"),
+  } = require("../models"),
   multer = require("multer"),
-  { imageKit } = require("../../config");
+  { imageKit } = require("../config");
 
 const upload = multer().single("picture");
 

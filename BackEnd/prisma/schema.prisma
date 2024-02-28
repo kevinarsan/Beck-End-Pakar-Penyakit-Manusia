@@ -32,6 +32,7 @@ model User {
   notification      Notification[]
   createdAt         DateTime       @default(now()) @map("created_at")
   updatedAt         DateTime       @updatedAt @map("updated_at")
+  Transaction       Transaction[]
 
   @@map("users")
 }
@@ -53,22 +54,23 @@ model Profile {
 }
 
 model ProfileDoctor {
-  id             Int                @id @default(autoincrement())
-  name           String?
-  phone          String?
-  picture        String?
-  spesialis      String?
-  description    String?
-  city           String?
-  province       String?
-  country        String?
-  userId         Int                @unique @map("users_id")
-  createdAt      DateTime           @default(now()) @map("created_at")
-  updatedAt      DateTime           @updatedAt @map("updated_at")
-  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  practice       PracticeOnDoctor[]
-  hospitalDoctor hospitalOnDoctor[]
-  review         Review[]
+  id                Int                 @id @default(autoincrement())
+  name              String?
+  phone             String?
+  picture           String?
+  spesialis         String?
+  description       String?
+  city              String?
+  province          String?
+  country           String?
+  userId            Int                 @unique @map("users_id")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  practice          PracticeOnDoctor[]
+  hospitalDoctor    hospitalOnDoctor[]
+  review            Review[]
+  DetailTransaction DetailTransaction[]
 
   @@map("profiles_doctor")
 }
@@ -141,9 +143,9 @@ model Review {
 }
 
 model Rating {
-  id     Int      @id @default(autoincrement())
-  rating Int?
-  review Review[]
+  id           Int      @id @default(autoincrement())
+  overalRating Float?   @map("overal_rating")
+  review       Review[]
 
   @@map("ratings")
 }
@@ -157,4 +159,46 @@ model Notification {
   user    User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("notifications")
+}
+
+model Transaction {
+  id                Int                 @id @default(autoincrement())
+  userId            Int                 @map("user_id")
+  total             Float
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  detailTransaction DetailTransaction[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@map("transactions")
+}
+
+model PaymentMethod {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  createdAt         DateTime            @default(now()) @map("crated_at")
+  updatedAt         DateTime            @updatedAt
+  DetailTransaction DetailTransaction[]
+
+  @@map("payment_method")
+}
+
+model DetailTransaction {
+  id             Int           @id @default(autoincrement())
+  doctorId       Int           @map("doctor_id")
+  transactionId  Int           @map("transaction_id")
+  paymentId      Int           @map("payment_id")
+  paymentStatus  Boolean       @map("payment_status")
+  cardNumber     String?       @map("card_number")
+  cardHolderName String?       @map("card_holder_name")
+  cvv            String?
+  serialNumber   Float
+  expiryDate     String?       @map("expiry_date")
+  payment        PaymentMethod @relation(fields: [paymentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  doctor         ProfileDoctor @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  transaction    Transaction   @relation(fields: [transactionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("detail_transactions")
 }

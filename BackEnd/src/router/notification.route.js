@@ -1,8 +1,8 @@
 const express = require("express"),
   router = express.Router(),
-  controllers = require("../../controllers/profiles/notification.controllers"),
-  { checkToken } = require("../../middlewares/check.token"),
-  checkRole = require("../../middlewares/check.role");
+  controllers = require("../controllers/notification.controllers"),
+  { checkToken } = require("../middlewares/check.token"),
+  checkRole = require("../middlewares/check.role");
 
 const Roles = {
   ADMIN: "admin",

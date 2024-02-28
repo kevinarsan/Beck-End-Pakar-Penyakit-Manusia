@@ -1,47 +1,242 @@
-// const { profileDoctor, hospitalOnDoctor, hospital } = require("../../models");
+// const { review, rating, user, profileDoctor } = require("../models");
+// const { createNotification } = require("../utils/notification");
 
 // module.exports = {
-//   getIdDoctor: async (req, res, next) => {
+//   create: async (req, res, next) => {
 //     try {
-//       const doctorIdParam = req.params.id;
-//       const user = req.user;
+//       let { value, feedback, userId, ratingId, doctorId } = req.body;
 
-//       // Jika token user adalah seorang dokter, gunakan doctorId dari token
-//       const doctorId = user.role === "dokter" ? user.profileDoctor.id : parseInt(doctorIdParam);
+//       doctorId = parseInt(doctorId);
+//       value = parseInt(value);
 
-//       const hospitals = await hospitalOnDoctor.findMany({
-//         where: { doctorId: doctorId },
+//       const token = req.user.id;
+
+//       const existingUser = await user.findUnique({
+//         where: {
+//           id: token,
+//         },
+//       });
+
+//       if (!existingUser) {
+//         return res.status(404).json({ message: "User Not Found" });
+//       }
+
+//       const existingDoctor = await profileDoctor.findUnique({
+//         where: {
+//           id: doctorId,
+//         },
+//       });
+
+//       if (!existingDoctor) {
+//         return res.status(404).json({ message: "Doctor Not Found" });
+//       }
+
+//       if (value < 1 || value > 5) {
+//         return res
+//           .status(400)
+//           .json({ message: "Rating should be between 1 and 5" });
+//       }
+
+//       ratingId = ratingId || doctorId;
+
+//       if (!ratingId) {
+//         ratingId = doctorId;
+//       }
+
+//       let ratings = await rating.findUnique({
+//         where: {
+//           id: ratingId,
+//         },
+//       });
+
+//       if (!ratings) {
+//         ratings = await rating.create({
+//           data: {
+//             id: ratingId,
+//             overalRating: value,
+//           },
+//         });
+//       } else {
+//         ratings = await rating.update({
+//           where: {
+//             id: ratingId,
+//           },
+//           data: {
+//             overalRating: ratings.overalRating + value,
+//           },
+//         });
+//       }
+
+//       const reviews = await review.create({
+//         data: {
+//           value: value,
+//           feedback: feedback,
+//           userId: token,
+//           doctorId: doctorId,
+//           ratingId: ratings.id,
+//         },
+//       });
+
+//       const existingReview = await review.findMany({
+//         where: {
+//           ratingId: ratings.id,
+//         },
+//       });
+
+//       const totRating = existingReview.reduce(
+//         (sum, reviews) => sum + (reviews.value || 0),
+//         0
+//       );
+//       const averageRating =
+//         existingReview.length > 0 ? totRating / existingReview.length : 0;
+
+//       await rating.update({
+//         where: {
+//           id: ratings.id,
+//         },
+//         data: {
+//           overalRating: averageRating,
+//         },
+//       });
+
+//       res.json({ success: "Review created successfully", data: reviews });
+//     } catch (error) {
+//       console.log(error);
+//       next(error);
+//     }
+//   },
+
+//   getAll: async (req, res, next) => {
+//     try {
+//       const reviews = await review.findMany({
 //         select: {
-//           doctorId: true,
+//           id: true,
+//           value: true,
+//           feedback: true,
+//           date: true,
+//           user: {
+//             select: {
+//               username: true,
+//             },
+//           },
 //           doctor: {
 //             select: {
 //               name: true,
 //             },
 //           },
-//           hospital: {
+//           rating: {
 //             select: {
-//               id: true,
-//               name: true,
-//               picture: true,
-//               city: true,
-//               province: true,
-//               country: true,
-//               location: true,
-//               createdAt: true,
-//               updatedAt: true,
+//               overalRating: true,
 //             },
 //           },
 //         },
 //       });
 
-//       if (!hospitals || hospitals.length === 0) {
-//         return res.status(404).json({ message: "Hospital Empty" });
+//       res.json({ success: "All review retrived succesfully", data: reviews });
+//     } catch (error) {
+//       console.log(error);
+//       next(error);
+//     }
+//   },
+
+//   getDoctor: async (req, res, next) => {
+//     try {
+//       const byId = parseInt(req.params.id);
+
+//       const reviews = await review.findMany({
+//         where: {
+//           doctorId: byId,
+//         },
+//         select: {
+//           id: true,
+//           value: true,
+//           feedback: true,
+//           date: true,
+//           user: {
+//             select: {
+//               username: true,
+//             },
+//           },
+//           doctor: {
+//             select: {
+//               id: true,
+//               name: true,
+//             },
+//           },
+//           rating: {
+//             select: {
+//               overalRating: true,
+//             },
+//           },
+//         },
+//       });
+
+//       res.json({ success: "All review retrived succesfully", reviews });
+//     } catch (error) {
+//       console.log(error);
+//       next(error);
+//     }
+//   },
+
+//   delete: async (req, res, next) => {
+//     try {
+//       const byId = parseInt(req.params.id);
+//       const token = req.user.id;
+//       const role = req.user.role;
+
+//       // Menggunakan 'findById' untuk mendapatkan review berdasarkan ID
+//       const existingReview = await review.findUnique({
+//         where: {
+//           id: byId,
+//         },
+//         include: {
+//           rating: true,
+//         },
+//       });
+
+//       if (!existingReview) {
+//         return res.status(404).json({ message: "Review not found" });
 //       }
 
-//       res.json({
-//         success: "Hospital on Doctor retrieved successfully",
-//         data: hospitals,
-//       });
+//       if (role === "admin" || existingReview.userId === token) {
+//         await review.delete({
+//           where: {
+//             id: byId,
+//           },
+//         });
+
+//         const relatedReviews = await review.findMany({
+//           where: {
+//             ratingId: existingReview.rating.id,
+//           },
+//         });
+
+//         const totalRating = relatedReviews.reduce(
+//           (sum, review) => sum + (review.value || 0),
+//           0
+//         );
+
+//         // Menghitung rata-rata rating
+//         const averageRating =
+//           relatedReviews.length > 0 ? totalRating / relatedReviews.length : 0;
+
+//         // Update nilai overalRating pada rating
+//         await rating.update({
+//           where: {
+//             id: existingReview.rating.id,
+//           },
+//           data: {
+//             overalRating: averageRating,
+//           },
+//         });
+
+//         res.json({ success: "Review deleted successfully", existingReview });
+//       } else {
+//         return res.status(403).json({
+//           message:
+//             "You do not have permission to delete this review, please delete it as you review",
+//         });
+//       }
 //     } catch (error) {
 //       console.log(error);
 //       next(error);

@@ -13,4 +13,7 @@ module.exports = {
   hospital: prisma.hospital,
   practiceOnDoctor: prisma.practiceOnDoctor,
   hospitalOnDoctor: prisma.hospitalOnDoctor,
+  transaction: prisma.transaction,
+  paymentMethod: prisma.paymentMethod,
+  detailTransaction: prisma.detailTransaction,
 };
