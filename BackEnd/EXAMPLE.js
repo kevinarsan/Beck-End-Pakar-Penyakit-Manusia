@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // const { review, rating, user, profileDoctor } = require("../models");
 // const { createNotification } = require("../utils/notification");
 
@@ -243,3 +244,6 @@
 //     }
 //   },
 // };
+=======
+
+>>>>>>> 28bc8e286f8a0613a9bd8ffa3b8c0ce0b571e1cc
