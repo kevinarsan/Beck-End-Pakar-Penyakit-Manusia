@@ -5,9 +5,12 @@ const express = require("express"),
   { errorHandling, succesHandling } = require("./middlewares/error.handling"),
   app = express();
 
+const cors = require("cors");
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json());
+app.use(cors());
 
 app.use("/api/v1", router);
 

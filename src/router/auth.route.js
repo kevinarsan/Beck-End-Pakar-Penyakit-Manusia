@@ -17,6 +17,6 @@ router.post(
 );
 router.post("/login", validate(schema.login), controllers.login);
 router.get("/me", checkToken, controllers.me);
-router.put("/update-me", checkToken, controllers.updateMe);
+router.put("/me", checkToken, controllers.updateMe);
 
 module.exports = router;

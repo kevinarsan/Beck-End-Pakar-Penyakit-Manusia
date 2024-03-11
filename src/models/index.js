@@ -16,4 +16,9 @@ module.exports = {
   transaction: prisma.transaction,
   paymentMethod: prisma.paymentMethod,
   detailTransaction: prisma.detailTransaction,
+  address: prisma.address,
+  visiMisi: prisma.visiMisi,
+  team: prisma.team,
+  aboutUs: prisma.aboutUs,
+  tutorial: prisma.tutorial,
 };

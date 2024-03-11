@@ -7,15 +7,17 @@ const express = require("express"),
   review = require("./review.route"),
   transaction = require("./transaction.route"),
   paymentMethod = require("./payment.method.route"),
+  visiMisi = require("./about.us.route"),
   router = express.Router();
 
-router.use(auth);
-router.use(notification);
-router.use(profile);
-router.use(practice);
-router.use(hospital);
-router.use(review);
-router.use(transaction);
-router.use(paymentMethod);
+router.use("/auth", auth);
+router.use("/notifications", notification);
+router.use("/profiles", profile);
+router.use("/practice", practice);
+router.use("/hospitals", hospital);
+router.use("/reviews", review);
+router.use("/transaction", transaction);
+router.use("/payment", paymentMethod);
+router.use("/about", visiMisi);
 
 module.exports = router;
