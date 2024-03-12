@@ -1,3 +1,4 @@
+const { over } = require("lodash");
 const { review, user, profileDoctor, rating } = require("../models");
 const { createNotification } = require("../utils/notification");
 
@@ -107,49 +108,6 @@ module.exports = {
     }
   },
 
-  // getAll: async (req, res, next) => {
-  //   try {
-  //     const reviews = await review.findMany({
-  //       where: {
-  //         id: req.body.id,
-  //       },
-  //     });
-
-  //     if (!reviews || reviews.length === 0) {
-  //       return res.status(404).json({ message: "Review Empty" });
-  //     }
-
-  //     const get = await review.findMany({
-  //       select: {
-  //         id: true,
-  //         value: true,
-  //         feedback: true,
-  //         date: true,
-  //         user: {
-  //           select: {
-  //             username: true,
-  //           },
-  //         },
-  //         doctor: {
-  //           select: {
-  //             name: true,
-  //           },
-  //         },
-  //         rating: {
-  //           select: {
-  //             overalRating: true,
-  //           },
-  //         },
-  //       },
-  //     });
-
-  //     res.json({ success: "All review retrived succesfully", get });
-  //   } catch (error) {
-  //     console.log(error);
-  //     next(error);
-  //   }
-  // },
-
   getAll: async (req, res, next) => {
     try {
       const reviews = await review.findMany();
@@ -205,30 +163,54 @@ module.exports = {
         return res.status(404).json({ message: "Doctor Empty" });
       }
 
-      const get = await review.findMany({
-        select: {
-          id: true,
-          value: true,
-          feedback: true,
-          date: true,
-          user: {
-            select: {
-              username: true,
-            },
-          },
-          doctor: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          rating: {
-            select: {
-              overalRating: true,
-            },
-          },
-        },
-      });
+      const get = await Promise.all(
+        reviews.map(async (reviews) => {
+          const doctor = await profileDoctor.findUnique({
+            where: { id: reviews.doctorId },
+          });
+
+          const users = await user.findUnique({
+            where: { id: reviews.userId },
+          });
+
+          const ratings = await rating.findUnique({
+            where: { id: reviews.ratingId },
+          });
+
+          return {
+            id: reviews.id,
+            nameDoctor: doctor.name,
+            value: reviews.value,
+            feedback: reviews.feedback,
+            overalRating: ratings.overalRating,
+            dariUsername: users.username,
+            date: reviews.date,
+          };
+        })
+      );
+      //   select: {
+      //     id: true,
+      //     value: true,
+      //     feedback: true,
+      //     date: true,
+      //     user: {
+      //       select: {
+      //         username: true,
+      //       },
+      //     },
+      //     doctor: {
+      //       select: {
+      //         id: true,
+      //         name: true,
+      //       },
+      //     },
+      //     rating: {
+      //       select: {
+      //         overalRating: true,
+      //       },
+      //     },
+      //   },
+      // });
 
       res.json({ success: "All review retrived succesfully", get });
     } catch (error) {
@@ -354,6 +336,71 @@ module.exports = {
       res.json({ success: "Rating retreived successfully", ratings });
     } catch (error) {
       console.log(error);
+      next(error);
+    }
+  },
+
+  getOveral: async (req, res, next) => {
+    try {
+      const overal = await rating.findMany({
+        where: {
+          id: req.body.id,
+        },
+        include: {
+          review: true,
+        },
+      });
+
+      if (!overal || overal.length === 0) {
+        return res.status(404).json({ message: "Empty" });
+      }
+
+      const get = await Promise.all(
+        overal.map(async (overal) => {
+          const reviews = overal.review;
+
+          if (!reviews || reviews.length === 0) {
+            return {
+              id: overal.id,
+              message: "No reviews found",
+            };
+          }
+
+          const doctorId = reviews[0].doctorId;
+
+          const doctors = await profileDoctor.findUnique({
+            where: { id: doctorId },
+          });
+
+          if (!doctors) {
+            return {
+              id: overal.id,
+              message: "Doctor not found",
+            };
+          }
+
+          return {
+            id: overal.id,
+            name: doctors.name,
+            phone: doctors.phone,
+            picture: doctors.picture,
+            spesialis: doctors.spesialis,
+            description: doctors.description,
+            city: doctors.city,
+            province: doctors.province,
+            country: doctors.country,
+            details: doctors.details,
+            overalRating: overal.overalRating,
+          };
+        })
+      );
+
+      res.json({
+        success: "Retrieved successfully",
+        get,
+      });
+    } catch (error) {
+      console.error(error);
       next(error);
     }
   },

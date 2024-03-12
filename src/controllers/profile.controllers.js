@@ -1,4 +1,11 @@
-const { user, profile, notification, profileDoctor } = require("../models"),
+const {
+    user,
+    profile,
+    notification,
+    profileDoctor,
+    hospitalOnDoctor,
+    hospital,
+  } = require("../models"),
   multer = require("multer"),
   upload = multer().single("picture"),
   { exclude } = require("../utils/encrypt.password"),
@@ -149,8 +156,16 @@ module.exports = {
           return res.status(500).json({ message: "Error Uploading File" });
         }
 
-        const { name, phone, spesialis, description, city, province, country } =
-          req.body;
+        const {
+          name,
+          phone,
+          spesialis,
+          description,
+          city,
+          province,
+          country,
+          details,
+        } = req.body;
         const token = req.user.id;
 
         const existingProfile = await profileDoctor.findUnique({
@@ -193,6 +208,7 @@ module.exports = {
             city: city || existingProfile.city,
             province: province || existingProfile.province,
             country: country || existingProfile.country,
+            details: details || existingProfile.details,
           },
         });
 
@@ -218,8 +234,16 @@ module.exports = {
           return res.status(500).json({ message: "Error Uploading File" });
         }
 
-        const { name, phone, spesialis, description, city, province, country } =
-          req.body;
+        const {
+          name,
+          phone,
+          spesialis,
+          description,
+          city,
+          province,
+          country,
+          details,
+        } = req.body;
 
         const byId = parseInt(req.params.id);
 
@@ -263,6 +287,7 @@ module.exports = {
             city: city || existingProfile.city,
             province: province || existingProfile.province,
             country: country || existingProfile.country,
+            details: details || existingProfile.details,
           },
         });
 
@@ -272,6 +297,80 @@ module.exports = {
         await createNotification(userId, welcomeMessage);
 
         res.json({ success: "Profile update succesfully", data: updateDoctor });
+      });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  getAllDoctor: async (req, res, next) => {
+    try {
+      const existingDoctor = await profileDoctor.findMany({
+        where: {
+          id: req.body.id,
+        },
+      });
+
+      if (!existingDoctor) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const get = await profileDoctor.findMany({
+        where: {
+          id: req.body.id,
+        },
+      });
+
+      res.json({ success: "Retrieved data succesfully", get });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  getAllDoctorHospitals: async (req, res, next) => {
+    try {
+      const existingProfiles = await hospitalOnDoctor.findMany();
+
+      if (!existingProfiles || existingProfiles.length === 0) {
+        return res.status(403).json({ message: "Profile empty" });
+      }
+
+      const get = await Promise.all(
+        existingProfiles.map(async (existingProfiles) => {
+          const doctors = await profileDoctor.findUnique({
+            where: { id: existingProfiles.doctorId },
+          });
+
+          const hospitals = await hospital.findUnique({
+            where: { id: existingProfiles.hospitalId },
+          });
+
+          return {
+            id: doctors.id,
+            name: doctors.name,
+            phone: doctors.phone,
+            picture: doctors.picture,
+            spesialis: doctors.spesialis,
+            description: doctors.description,
+            city: doctors.city,
+            province: doctors.province,
+            country: doctors.country,
+            nameHospitals: hospitals.name,
+            pictureHospitals: hospitals.picture,
+            cityHospitals: hospitals.city,
+            provinceHospitals: hospitals.province,
+            countryHospitals: hospitals.country,
+            detailsHospitals: hospitals.details,
+            locationHospitals: hospitals.location,
+          };
+        })
+      );
+
+      res.json({
+        success: "Profile retrieved successfully",
+        get,
       });
     } catch (error) {
       console.log(error);
