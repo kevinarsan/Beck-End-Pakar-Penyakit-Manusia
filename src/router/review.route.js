@@ -36,6 +36,8 @@ router.get("/rating/:id", checkToken, controllers.getRatingId);
 
 router.get("/overal", controllers.getOveral);
 
+router.get("/overal/:id", controllers.getOveralId);
+
 router.delete("/delete/:id", checkToken, controllers.delete);
 
 router.delete(

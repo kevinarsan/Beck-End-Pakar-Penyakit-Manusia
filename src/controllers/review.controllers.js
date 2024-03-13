@@ -405,6 +405,62 @@ module.exports = {
     }
   },
 
+  getOveralId: async (req, res, next) => {
+    try {
+      const byId = parseInt(req.params.id);
+      const overal = await rating.findUnique({
+        where: {
+          id: byId,
+        },
+        include: {
+          review: true,
+        },
+      });
+
+      if (!overal) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const reviews = overal.review;
+
+      if (!reviews || reviews.length === 0) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const doctorId = reviews[0].doctorId;
+
+      const doctor = await profileDoctor.findUnique({
+        where: { id: doctorId },
+      });
+
+      if (!doctor) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const get = {
+        id: doctor.id,
+        name: doctor.name,
+        phone: doctor.phone,
+        picture: doctor.picture,
+        spesialis: doctor.spesialis,
+        description: doctor.description,
+        city: doctor.city,
+        province: doctor.province,
+        country: doctor.country,
+        details: doctor.details,
+        overallRating: overal.overalRating,
+      };
+
+      res.json({
+        success: "Retrieved successfully",
+        get,
+      });
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  },
+
   delete: async (req, res, next) => {
     try {
       const byId = parseInt(req.params.id);

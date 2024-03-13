@@ -21,4 +21,5 @@ module.exports = {
   team: prisma.team,
   aboutUs: prisma.aboutUs,
   tutorial: prisma.tutorial,
+  faq: prisma.faq,
 };

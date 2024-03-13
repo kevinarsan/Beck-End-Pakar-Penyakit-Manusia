@@ -42,13 +42,11 @@ model Profile {
   name      String?
   phone     String?
   picture   String?
-  // addressId Int?     @unique @map("address_id")
   city      String?
   province  String?
   country   String?
   userId    Int      @unique @map("users_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  // address   Address? @relation(fields: [addressId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -62,6 +60,7 @@ model ProfileDoctor {
   picture           String?
   spesialis         String?
   description       String?
+  aboutUs           String?
   city              String?
   province          String?
   country           String?
@@ -265,4 +264,14 @@ model Tutorial {
   updatedAt   DateTime @updatedAt
 
   @@map("tutorial")
+}
+
+model Faq {
+  id         Int      @id @default(autoincrement())
+  pertanyaan String
+  jawaban    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("(faq)")
 }

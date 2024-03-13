@@ -30,8 +30,8 @@ router.get(
 );
 router.get(
   "/get-doctor/:id",
-  checkToken,
-  checkRole.authPage([Roles.ADMIN]),
+  // checkToken,
+  // checkRole.authPage([Roles.ADMIN]),
   controllers.getByIdDoctor
 );
 

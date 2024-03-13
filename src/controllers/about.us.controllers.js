@@ -1,4 +1,4 @@
-const { visiMisi, team, aboutUs, tutorial } = require("../models"),
+const { visiMisi, team, aboutUs, tutorial, faq } = require("../models"),
   multer = require("multer"),
   { imageKit } = require("../config"),
   upload = multer().single("picture");
@@ -432,6 +432,106 @@ module.exports = {
       });
 
       res.json({ success: "Delete data succesfullly", videos });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  faq: async (req, res, next) => {
+    try {
+      const { pertanyaan, jawaban } = req.body;
+      const FAQ = await faq.create({
+        data: {
+          pertanyaan: pertanyaan,
+          jawaban: jawaban,
+        },
+      });
+
+      res.json({ success: "Created succesfully", FAQ });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  getFaq: async (req, res, next) => {
+    try {
+      const existingFaq = await faq.findMany({
+        where: {
+          id: req.body.id,
+        },
+      });
+
+      if (!existingFaq || existingFaq.length === 0) {
+        return res.status(404).json({ message: "Not found" });
+      }
+
+      const FAQ = await faq.findMany({
+        where: {
+          id: req.body.id,
+        },
+      });
+
+      res.json({ success: "Retrieved data succesfully", FAQ });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  updateFaq: async (req, res, next) => {
+    try {
+      const byId = parseInt(req.params.id);
+      const { pertanyaan, jawaban } = req.body;
+
+      const existingFaq = await faq.findUnique({
+        where: {
+          id: byId,
+        },
+      });
+
+      if (!existingFaq) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const FAQ = await faq.update({
+        where: {
+          id: byId,
+        },
+        data: {
+          pertanyaan: pertanyaan || existingFaq.pertanyaan,
+          jawaban: jawaban || existingFaq.jawaban,
+        },
+      });
+
+      res.json({ success: "Updated succesfully", FAQ });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  deleteFaq: async (req, res, next) => {
+    try {
+      const byId = parseInt(req.params.id);
+      const existingFaq = await faq.findUnique({
+        where: {
+          id: byId,
+        },
+      });
+
+      if (!existingFaq) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const FAQ = await faq.delete({
+        where: {
+          id: byId,
+        },
+      });
+
+      res.json({ success: "Deleted succesfully", FAQ });
     } catch (error) {
       console.log(error);
       next(error);

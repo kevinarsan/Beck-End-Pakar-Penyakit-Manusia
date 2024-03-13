@@ -1,5 +1,3 @@
-const { team } = require("../models");
-
 const express = require("express"),
   router = express.Router(),
   controllers = require("../controllers/about.us.controllers"),
@@ -32,5 +30,10 @@ router.post("/tutorials", controllers.video);
 router.get("/tutorials", controllers.getVideo);
 router.put("/tutorials/:id", controllers.updateVideo);
 router.delete("/tutorials/:id", controllers.deleteVideo);
+
+router.post("/faq", controllers.faq);
+router.get("/faq", controllers.getFaq);
+router.put("/faq/:id", controllers.updateFaq);
+router.delete("/faq/:id", controllers.deleteFaq);
 
 module.exports = router;
