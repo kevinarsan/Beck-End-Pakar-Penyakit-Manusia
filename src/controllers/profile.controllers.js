@@ -243,6 +243,7 @@ module.exports = {
           province,
           country,
           details,
+          aboutUs,
         } = req.body;
 
         const byId = parseInt(req.params.id);
@@ -288,6 +289,7 @@ module.exports = {
             province: province || existingProfile.province,
             country: country || existingProfile.country,
             details: details || existingProfile.details,
+            aboutUs: aboutUs || existingProfile.aboutUs,
           },
         });
 

@@ -36,4 +36,9 @@ router.get("/faq", controllers.getFaq);
 router.put("/faq/:id", controllers.updateFaq);
 router.delete("/faq/:id", controllers.deleteFaq);
 
+router.post("/contact", controllers.kontak);
+router.get("/contact", controllers.getContact);
+router.put("/contact/:id", controllers.updateContact);
+router.delete("/contact/:id", controllers.deleteContact);
+
 module.exports = router;

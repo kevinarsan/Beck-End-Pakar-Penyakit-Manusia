@@ -1,4 +1,13 @@
-const { visiMisi, team, aboutUs, tutorial, faq } = require("../models"),
+const { update } = require("lodash");
+
+const {
+    visiMisi,
+    team,
+    aboutUs,
+    tutorial,
+    faq,
+    contact,
+  } = require("../models"),
   multer = require("multer"),
   { imageKit } = require("../config"),
   upload = multer().single("picture");
@@ -532,6 +541,103 @@ module.exports = {
       });
 
       res.json({ success: "Deleted succesfully", FAQ });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  kontak: async (req, res, next) => {
+    try {
+      const { name, email } = req.body;
+
+      const contacts = await contact.create({
+        data: {
+          name: name,
+          email: email,
+        },
+      });
+
+      res.json({ success: "Created succesfully", contacts });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  getContact: async (req, res, next) => {
+    try {
+      const existingContact = await contact.findMany({
+        where: { id: req.body.id },
+      });
+
+      if (!existingContact || existingContact.length === 0) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const contacts = await contact.findMany({
+        where: { id: req.body.id },
+      });
+
+      res.json({ message: "Retrieved succesfully", contacts });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  updateContact: async (req, res, next) => {
+    try {
+      const byId = parseInt(req.params.id);
+      const { name, email } = req.body;
+      const existingContact = await contact.findUnique({
+        where: {
+          id: byId,
+        },
+      });
+
+      if (!existingContact) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const contacts = await contact.update({
+        where: {
+          id: byId,
+        },
+        data: {
+          name: name || existingContact.name,
+          email: email || existingContact.email,
+        },
+      });
+
+      res.json({ success: "Updated data succesfully", contacts });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  deleteContact: async (req, res, next) => {
+    try {
+      const byId = parseInt(req.params.id);
+
+      const existingContact = await contact.findUnique({
+        where: {
+          id: byId,
+        },
+      });
+
+      if (!existingContact) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const contacts = await contact.delete({
+        where: {
+          id: byId,
+        },
+      });
+
+      res.json({ success: "Deleted data succesfully", contacts });
     } catch (error) {
       console.log(error);
       next(error);

@@ -77,22 +77,6 @@ model ProfileDoctor {
   @@map("profiles_doctor")
 }
 
-model Address {
-  id        Int      @id @default(autoincrement())
-  city      String?
-  province  String?
-  country   String?
-  details   String?
-  location  String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  // Profile       Profile?
-  // ProfileDoctor ProfileDoctor?
-  // Hospital      Hospital[]
-
-  @@map("address")
-}
-
 model Practice {
   id             Int                @id @default(autoincrement())
   days           String
@@ -274,4 +258,14 @@ model Faq {
   updatedAt  DateTime @updatedAt
 
   @@map("(faq)")
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contact")
 }

@@ -390,6 +390,7 @@ module.exports = {
             province: doctors.province,
             country: doctors.country,
             details: doctors.details,
+            aboutDoctor: doctors.aboutUs,
             overalRating: overal.overalRating,
           };
         })
@@ -448,6 +449,7 @@ module.exports = {
         province: doctor.province,
         country: doctor.country,
         details: doctor.details,
+        aboutDoctor: doctor.aboutUs,
         overallRating: overal.overalRating,
       };
 

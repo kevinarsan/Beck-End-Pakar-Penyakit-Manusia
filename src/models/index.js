@@ -22,4 +22,5 @@ module.exports = {
   aboutUs: prisma.aboutUs,
   tutorial: prisma.tutorial,
   faq: prisma.faq,
+  contact: prisma.contact,
 };
