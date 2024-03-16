@@ -614,4 +614,167 @@ module.exports = {
       next(error);
     }
   },
+
+  getDoctor: async (req, res, next) => {
+    try {
+      const get = await profileDoctor.findMany({
+        where: {
+          id: req.body.id,
+        },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          picture: true,
+          spesialis: true,
+          description: true,
+          city: true,
+          province: true,
+          country: true,
+          details: true,
+          aboutUs: true,
+          practiceDoctor: {
+            select: {
+              doctorId: true,
+              practice: {
+                select: {
+                  days: true,
+                  open: true,
+                  close: true,
+                },
+              },
+            },
+          },
+          hospitalDoctor: {
+            select: {
+              doctorId: true,
+              hospital: {
+                select: {
+                  name: true,
+                  picture: true,
+                  city: true,
+                  province: true,
+                  country: true,
+                  details: true,
+                  location: true,
+                },
+              },
+            },
+          },
+          review: {
+            select: {
+              feedback: true,
+              value: true,
+              user: {
+                select: {
+                  username: true,
+                },
+              },
+            },
+          },
+          rating: {
+            select: {
+              overalRating: true,
+            },
+          },
+        },
+      });
+
+      if (!get || get.length === 0) {
+        return res.status(404).json({ message: "Doctor Empty" });
+      }
+
+      res.json({ success: "Retrieved Succesfully", get });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  getDoctorId: async (req, res, next) => {
+    try {
+      const byId = parseInt(req.params.id);
+      const get = await profileDoctor.findUnique({
+        where: {
+          id: byId,
+        },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          picture: true,
+          spesialis: true,
+          description: true,
+          city: true,
+          province: true,
+          country: true,
+          details: true,
+          aboutUs: true,
+          practiceDoctor: {
+            select: {
+              doctorId: true,
+              practice: {
+                select: {
+                  days: true,
+                  open: true,
+                  close: true,
+                },
+              },
+            },
+          },
+          hospitalDoctor: {
+            select: {
+              doctorId: true,
+              hospital: {
+                select: {
+                  name: true,
+                  picture: true,
+                  city: true,
+                  province: true,
+                  country: true,
+                  details: true,
+                  location: true,
+                },
+              },
+            },
+          },
+          review: {
+            select: {
+              feedback: true,
+              value: true,
+              user: {
+                select: {
+                  username: true,
+                  profile: {
+                    select: {
+                      picture: true,
+                    },
+                  },
+                  profileDoctor: {
+                    select: {
+                      picture: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          rating: {
+            select: {
+              overalRating: true,
+            },
+          },
+        },
+      });
+
+      if (!get || get.length === 0) {
+        return res.status(404).json({ message: "Doctor Empty" });
+      }
+
+      res.json({ success: "Retrieved Succesfully", get });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
 };

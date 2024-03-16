@@ -22,6 +22,10 @@ router.get("/get-all-doctor", controllers.getAllDoctor);
 
 router.get("/get-doctor-hospitals", controllers.getAllDoctorHospitals);
 
+router.get("/doctor", controllers.getDoctor);
+
+router.get("/doctor/:id", controllers.getDoctorId);
+
 router.get(
   "/get-users/:id",
   checkToken,

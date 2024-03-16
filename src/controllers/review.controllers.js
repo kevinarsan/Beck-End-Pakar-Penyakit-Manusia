@@ -56,6 +56,7 @@ module.exports = {
           data: {
             id: ratingId,
             overalRating: value,
+            doctorId: ratingId,
           },
         });
       } else {
@@ -65,6 +66,7 @@ module.exports = {
           },
           data: {
             overalRating: ratings.overalRating + value,
+            doctorId: ratingId,
           },
         });
       }

@@ -69,10 +69,11 @@ model ProfileDoctor {
   createdAt         DateTime            @default(now()) @map("created_at")
   updatedAt         DateTime            @updatedAt @map("updated_at")
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  practice          PracticeOnDoctor[]
+  practiceDoctor    PracticeOnDoctor[]
   hospitalDoctor    hospitalOnDoctor[]
   review            Review[]
   DetailTransaction DetailTransaction[]
+  rating            Rating[]
 
   @@map("profiles_doctor")
 }
@@ -113,7 +114,6 @@ model Hospital {
   location       String?
   createdAt      DateTime           @default(now()) @map("created_at")
   updatedAt      DateTime           @updatedAt @map("updated_at")
-  // address        Address?           @relation(fields: [addressId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   hospitalDoctor hospitalOnDoctor[]
 
   @@map("hospitals")
@@ -147,9 +147,11 @@ model Review {
 }
 
 model Rating {
-  id           Int      @id @default(autoincrement())
-  overalRating Float?   @map("overal_rating")
+  id           Int            @id @default(autoincrement())
+  overalRating Float?         @map("overal_rating")
+  doctorId     Int?           @map("doctor_id")
   review       Review[]
+  doctor       ProfileDoctor? @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("ratings")
 }
