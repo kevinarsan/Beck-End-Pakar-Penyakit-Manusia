@@ -393,7 +393,7 @@ module.exports = {
         return res.status(403).json({ message: "Profile empty" });
       }
 
-      const data = exitingProfile.map((user) => {
+      const userGet = exitingProfile.map((user) => {
         let userProfile = [];
         if (user.role === "dokter" && user.profileDoctor) {
           userProfile = user.profileDoctor;
@@ -419,7 +419,7 @@ module.exports = {
 
       res.json({
         success: "Profile retrieved succesfully",
-        data,
+        userGet,
       });
     } catch (error) {
       console.log(error);

@@ -19,20 +19,21 @@ enum Role {
 }
 
 model User {
-  id                Int            @id @default(autoincrement())
-  username          String
-  email             String
-  password          String
-  resetToken        String?        @map("reset_token")
-  veryficationToken String?        @map("verification_token")
-  role              Role
-  profile           Profile?
-  profileDoctor     ProfileDoctor?
-  review            Review[]
-  notification      Notification[]
-  createdAt         DateTime       @default(now()) @map("created_at")
-  updatedAt         DateTime       @updatedAt @map("updated_at")
-  Transaction       Transaction[]
+  id            Int            @id @default(autoincrement())
+  username      String
+  email         String         @unique
+  password      String
+  resetToken    String?        @map("reset_token")
+  validasi      String?        @map("validasi")
+  isActive      Boolean?       @map("is_active")
+  role          Role
+  profile       Profile?
+  profileDoctor ProfileDoctor?
+  review        Review[]
+  notification  Notification[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  Transaction   Transaction[]
 
   @@map("users")
 }

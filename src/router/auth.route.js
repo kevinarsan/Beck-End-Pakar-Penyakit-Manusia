@@ -5,6 +5,10 @@ const express = require("express"),
   schema = require("../validator.schemas/auth.validator"),
   { checkToken } = require("../middlewares/check.token");
 
+router.post("/register", controllers.register);
+
+router.post("/otp/:key", controllers.verifyUser);
+
 router.post(
   "/register-users",
   validate(schema.register),

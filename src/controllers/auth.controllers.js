@@ -1,284 +1,424 @@
-const { user, profile, profileDoctor } = require("../models"),
-  {
-    cryptPassword,
-    verifyHashed,
-    jwt,
-    exclude,
-  } = require("../utils/encrypt.password"),
-  { createNotification } = require("../utils/notification");
+const { user, profile, profileDoctor } = require("../models"), {
+        cryptPassword,
+        verifyHashed,
+        jwt,
+        exclude,
+    } = require("../utils/encrypt.password"), { createNotification } = require("../utils/notification"), { generateOTP } = require("../utils/otp"),
+    nodemailer = require("nodemailer"), { generate } = require("otp-generator");
+const { validationResult } = require("express-validator");
+const { google } = require("googleapis");
+const OAuth2 = google.auth.OAuth2;
+require("dotenv").config();
 
 module.exports = {
-  registerUser: async (req, res, next) => {
-    try {
-      const { username, email, password, phone } = req.body;
+    register: async(req, res, next) => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
 
-      const existingEmail = await user.findFirst({
-        where: {
-          email: email,
-        },
-      });
+            const { username, email, password, phone } = req.body;
 
-      if (existingEmail) {
-        return res.status(400).json({ message: "Email is already taken" });
-      }
+            // Periksa apakah email sudah terdaftar sebelumnya
+            const existingEmail = await user.findFirst({
+                where: {
+                    email: email,
+                },
+            });
+            if (existingEmail) {
+                return res.status(403).json({ message: "Your email already exists" });
+            }
 
-      const existingUsername = await user.findFirst({
-        where: {
-          username: username,
-        },
-      });
+            // Generate OTP
+            const generatedOTP = generateOTP();
 
-      if (existingUsername) {
-        return res.status(400).json({ message: "Username is already taken" });
-      }
+            // Simpan data pengguna bersama dengan OTP
+            const data = await user.create({
+                data: {
+                    username: username,
+                    email: email,
+                    password: await cryptPassword(password),
+                    role: "user",
+                    validasi: generatedOTP,
+                    isActive: false,
+                    profile: {
+                        create: {
+                            phone: phone,
+                        },
+                    },
+                },
+            });
 
-      const existingPhone = await user.findFirst({
-        where: {
-          profile: {
-            phone: phone,
-          },
-        },
-      });
+            // Konfigurasi OAuth2 client
+            const oauth2Client = new OAuth2(
+                process.env.GOOGLE_CLIENT_ID,
+                process.env.GOOGLE_CLIENT_SECRET,
+                "https://developers.google.com/oauthplayground"
+            );
 
-      if (existingPhone) {
-        return res.status(400).json({ message: "Phone is already taken" });
-      }
+            oauth2Client.setCredentials({
+                refresh_token: process.env.OAUTH_REFRESH_TOKEN,
+            });
 
-      const register = await user.create({
-        data: {
-          username: username,
-          email: email,
-          password: await cryptPassword(password),
-          role: "user",
-          profile: {
-            create: {
-              phone: phone,
-            },
-          },
-        },
-      });
+            const accessToken = oauth2Client.getAccessToken();
 
-      const welcomeMessage = `Selamat datang, ${username}! Terima kasih telah bergabung.`;
-      await createNotification(register.id, welcomeMessage);
+            // Konfigurasi transporter untuk pengiriman email
+            const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    type: "OAuth2",
+                    user: process.env.EMAIL_USER,
+                    clientId: process.env.GOOGLE_CLIENT_ID,
+                    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                    refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+                    accessToken: accessToken,
+                },
+            });
 
-      const data = exclude(register, [
-        "password",
-        "resetToken",
-        "veryficationToken",
-      ]);
+            // Konfigurasi email yang akan dikirim
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: "OTP Verification",
+                html: `<p>Hi ${email},</p><p>Your OTP for account verification is: <strong>${generatedOTP}</strong></p>`,
+            };
 
-      res.json({
-        success: "Register successfully",
-        data,
-      });
-    } catch (error) {
-      console.log(error);
-      next(error);
-    }
-  },
+            // Kirim email dengan OTP
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.error("Error sending email:", error);
+                    return res.status(500).json({ error: "Failed to send OTP email" });
+                }
+                console.log("Email sent:", info.response);
+                // Kirim respons ke klien
+                res.json({
+                    email: data.email,
+                    otp: data.validasi,
+                    success: "Check your email for verify",
+                });
+            });
+        } catch (error) {
+            console.error("Error registering user:", error);
+            next(error);
+        }
+    },
 
-  registerAdmin: async (req, res, next) => {
-    try {
-      const { username, email, password, phone, role } = req.body;
+    verifyUser: async(req, res) => {
+        try {
+            const findUser = await user.findFirst({
+                where: {
+                    email: req.params.key,
+                },
+            });
+            if (!findUser) {
+                return res.status(403).json({
+                    error: "Your email is not registered in our system",
+                });
+            }
+            if (findUser && findUser.validasi !== req.body.validasi) {
+                return res.status(403).json({
+                    error: "Your OTP not valid",
+                });
+            }
+            const data = await user.update({
+                data: {
+                    isActive: true,
+                },
+                where: {
+                    id: findUser.id,
+                },
+            });
 
-      const existingEmail = await user.findFirst({
-        where: {
-          email: email,
-        },
-      });
+            // jika OTP sudah valid maka akan membuat token
+            const token = jwt.sign({ id: findUser.id, email: findUser.email, phone: findUser.phone },
+                secret_key, { expiresIn: "6h" }
+            );
 
-      if (existingEmail) {
-        return res.status(400).json({ message: "Email is already taken" });
-      }
+            res.json({
+                data: {
+                    token,
+                },
+            });
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({
+                error,
+            });
+        }
+    },
 
-      const existingUsername = await user.findFirst({
-        where: {
-          username: username,
-        },
-      });
+    registerUser: async(req, res, next) => {
+        try {
+            const { username, email, password, phone } = req.body;
 
-      if (existingUsername) {
-        return res.status(400).json({ message: "Username is already taken" });
-      }
+            const existingEmail = await user.findFirst({
+                where: {
+                    email: email,
+                },
+            });
 
-      const existingPhone = await user.findFirst({
-        where: {
-          profile: {
-            phone: phone,
-          },
-        },
-      });
+            if (existingEmail) {
+                return res.status(400).json({ message: "Email is already taken" });
+            }
 
-      if (existingPhone) {
-        return res.status(400).json({ message: "Phone is already taken" });
-      }
+            const existingUsername = await user.findFirst({
+                where: {
+                    username: username,
+                },
+            });
 
-      const register = await user.create({
-        data: {
-          username: username,
-          email: email,
-          password: await cryptPassword(password),
-          role: role,
-          [role === "admin" ? "profile" : "profileDoctor"]: {
-            create: {
-              phone: phone,
-            },
-          },
-        },
-      });
+            if (existingUsername) {
+                return res.status(400).json({ message: "Username is already taken" });
+            }
 
-      const welcomeMessage = `Selamat datang, ${username}! Terima kasih telah bergabung.`;
-      await createNotification(register.id, welcomeMessage);
+            const existingPhone = await user.findFirst({
+                where: {
+                    profile: {
+                        phone: phone,
+                    },
+                },
+            });
 
-      const data = exclude(register, [
-        "password",
-        "resetToken",
-        "veryficationToken",
-      ]);
+            if (existingPhone) {
+                return res.status(400).json({ message: "Phone is already taken" });
+            }
 
-      res.json({
-        success: "Register successfully",
-        data,
-      });
-    } catch (error) {
-      console.log(error);
-      next(error);
-    }
-  },
+            const register = await user.create({
+                data: {
+                    username: username,
+                    email: email,
+                    password: await cryptPassword(password),
+                    role: "user",
+                    profile: {
+                        create: {
+                            phone: phone,
+                        },
+                    },
+                },
+            });
 
-  login: async (req, res, next) => {
-    try {
-      const { username, email, password, phone } = req.body;
+            const welcomeMessage = `Selamat datang, ${username}! Terima kasih telah bergabung.`;
+            await createNotification(register.id, welcomeMessage);
 
-      let users;
-      if (username) {
-        users = await user.findFirst({
-          where: { username: username },
-          include: { profile: true },
-        });
-      } else if (email) {
-        users = await user.findFirst({
-          where: { email: email },
-          include: { profile: true },
-        });
-      } else if (phone) {
-        users = await user.findFirst({
-          where: {
-            profile: { phone: phone },
-          },
-          include: { profile: true },
-        });
-      } else {
-        return res.status(400).json({ message: "Invalid login request" });
-      }
+            const data = exclude(register, [
+                "password",
+                "resetToken",
+                "veryficationToken",
+            ]);
 
-      if (!users) {
-        return res.status(403).json({ message: "Invalid credentials" });
-      }
+            res.json({
+                success: "Register successfully",
+                data,
+            });
+        } catch (error) {
+            console.log(error);
+            next(error);
+        }
+    },
 
-      const verifyPassword = await verifyHashed(
-        password,
-        users.password.toString()
-      );
-      if (!verifyPassword) {
-        return res.status(403).json({ message: "Invalid password" });
-      }
+    registerAdmin: async(req, res, next) => {
+        try {
+            const { username, email, password, phone, role } = req.body;
 
-      // Menentukan role dan mengambil data sesuai role
-      let userData;
-      if (users.role === "dokter") {
-        userData = await profileDoctor.findUnique({
-          where: { userId: users.id },
-        });
-      } else {
-        userData = await profile.findUnique({
-          where: { userId: users.id },
-        });
-      }
+            const existingEmail = await user.findFirst({
+                where: {
+                    email: email,
+                },
+            });
 
-      const payload = {
-        id: users.id,
-        username: users.username,
-        email: users.email,
-        phone: userData.phone,
-        role: users.role,
-      };
+            if (existingEmail) {
+                return res.status(400).json({ message: "Email is already taken" });
+            }
 
-      const token = jwt(payload);
+            const existingUsername = await user.findFirst({
+                where: {
+                    username: username,
+                },
+            });
 
-      res.json({
-        success: "Login successfully",
-        data: { user: payload, token },
-      });
-    } catch (error) {
-      console.error(error);
-      next(error);
-    }
-  },
+            if (existingUsername) {
+                return res.status(400).json({ message: "Username is already taken" });
+            }
 
-  me: async (req, res, next) => {
-    try {
-      const userId = req.user.id;
-      const users = await user.findUnique({
-        where: {
-          id: userId,
-        },
-      });
+            const existingPhone = await user.findFirst({
+                where: {
+                    profile: {
+                        phone: phone,
+                    },
+                },
+            });
 
-      const data = exclude(users, [
-        "password",
-        "resetToken",
-        "veryficationToken",
-      ]);
+            if (existingPhone) {
+                return res.status(400).json({ message: "Phone is already taken" });
+            }
 
-      res.json({
-        success: "Fetch data successfully",
-        data,
-      });
-    } catch (error) {
-      console.log(error);
-      next(error);
-    }
-  },
+            const register = await user.create({
+                data: {
+                    username: username,
+                    email: email,
+                    password: await cryptPassword(password),
+                    role: role,
+                    [role === "admin" ? "profile" : "profileDoctor"]: {
+                        create: {
+                            phone: phone,
+                        },
+                    },
+                },
+            });
 
-  updateMe: async (req, res, next) => {
-    try {
-      const { username, password } = req.body;
+            const welcomeMessage = `Selamat datang, ${username}! Terima kasih telah bergabung.`;
+            await createNotification(register.id, welcomeMessage);
 
-      const token = req.user.id;
+            const data = exclude(register, [
+                "password",
+                "resetToken",
+                "veryficationToken",
+            ]);
 
-      const existingUser = await user.findUnique({
-        where: {
-          id: token,
-        },
-      });
+            res.json({
+                success: "Register successfully",
+                data,
+            });
+        } catch (error) {
+            console.log(error);
+            next(error);
+        }
+    },
 
-      if (!existingUser) {
-        return res.status(404).json({ message: "Not Found" });
-      }
+    login: async(req, res, next) => {
+        try {
+            const { username, email, password, phone } = req.body;
 
-      const update = await user.update({
-        where: {
-          id: token,
-        },
-        data: {
-          username: username || existingUser.username,
-        },
-      });
+            let users;
+            if (username) {
+                users = await user.findFirst({
+                    where: { username: username },
+                    include: { profile: true },
+                });
+            } else if (email) {
+                users = await user.findFirst({
+                    where: { email: email },
+                    include: { profile: true },
+                });
+            } else if (phone) {
+                users = await user.findFirst({
+                    where: {
+                        profile: { phone: phone },
+                    },
+                    include: { profile: true },
+                });
+            } else {
+                return res.status(400).json({ message: "Invalid login request" });
+            }
 
-      const data = exclude(update, [
-        "password",
-        "resetToken",
-        "veryficationToken",
-      ]);
+            if (!users) {
+                return res.status(401).json({ message: "Invalid credentials" });
+            }
 
-      res.json({
-        success: "Update successfully",
-        data,
-      });
-    } catch (error) {
-      console.log(error);
-      next(error);
-    }
-  },
+            const verifyPassword = await verifyHashed(
+                password,
+                users.password.toString()
+            );
+            if (!verifyPassword) {
+                return res.status(403).json({ message: "Invalid password" });
+            }
+
+            // Menentukan role dan mengambil data sesuai role
+            let userData;
+            if (users.role === "dokter") {
+                userData = await profileDoctor.findUnique({
+                    where: { userId: users.id },
+                });
+            } else {
+                userData = await profile.findUnique({
+                    where: { userId: users.id },
+                });
+            }
+
+            const payload = {
+                id: users.id,
+                // username: users.username,
+                // email: users.email,
+                // phone: userData.phone,
+                role: users.role,
+            };
+
+            const token = jwt(payload);
+
+            res.json({
+                success: "Login successfully",
+                data: { user: payload, token },
+            });
+        } catch (error) {
+            console.error(error);
+            next(error);
+        }
+    },
+
+    me: async(req, res, next) => {
+        try {
+            const userId = req.user.id;
+            const users = await user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+
+            const data = exclude(users, [
+                "password",
+                "resetToken",
+                "veryficationToken",
+            ]);
+
+            res.json({
+                success: "Fetch data successfully",
+                data,
+            });
+        } catch (error) {
+            console.log(error);
+            next(error);
+        }
+    },
+
+    updateMe: async(req, res, next) => {
+        try {
+            const { username, password } = req.body;
+
+            const token = req.user.id;
+
+            const existingUser = await user.findUnique({
+                where: {
+                    id: token,
+                },
+            });
+
+            if (!existingUser) {
+                return res.status(404).json({ message: "Not Found" });
+            }
+
+            const update = await user.update({
+                where: {
+                    id: token,
+                },
+                data: {
+                    username: username || existingUser.username,
+                },
+            });
+
+            const data = exclude(update, [
+                "password",
+                "resetToken",
+                "veryficationToken",
+            ]);
+
+            res.json({
+                success: "Update successfully",
+                data,
+            });
+        } catch (error) {
+            console.log(error);
+            next(error);
+        }
+    },
 };

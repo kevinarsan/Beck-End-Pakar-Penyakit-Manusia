@@ -11,34 +11,124 @@ const Roles = {
   DOKTER: "dokter",
 };
 
-router.post("/visi-misi", controllers.visi);
+router.post(
+  "/visi-misi",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.visi
+);
 router.get("/visi-misi", controllers.getVisi);
-router.put("/visi-misi/:id", controllers.updateMisi);
-router.delete("/visi-misi/:id", controllers.deleteMisi);
+router.put(
+  "/visi-misi/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.updateMisi
+);
+router.delete(
+  "/visi-misi/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.deleteMisi
+);
 
-router.post("/description-team", controllers.about);
+router.post(
+  "/description-team",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.about
+);
 router.get("/description-team", controllers.getAbout);
-router.put("/moto-team/:id", controllers.updateAbout);
-router.delete("/moto-team/:id", controllers.deleteAbout);
+router.put(
+  "/moto-team/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.updateAbout
+);
+router.delete(
+  "/moto-team/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.deleteAbout
+);
 
-router.post("/teams", controllers.teamCreate);
+router.post(
+  "/teams",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.teamCreate
+);
 router.get("/teams", controllers.getTeam);
-router.put("/teams/:id", controllers.updateTeam);
-router.delete("/teams/:id", controllers.deleteTeams);
+router.put(
+  "/teams/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.updateTeam
+);
+router.delete(
+  "/teams/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.deleteTeams
+);
 
-router.post("/tutorials", controllers.video);
+router.post(
+  "/tutorials",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.video
+);
 router.get("/tutorials", controllers.getVideo);
-router.put("/tutorials/:id", controllers.updateVideo);
-router.delete("/tutorials/:id", controllers.deleteVideo);
+router.put(
+  "/tutorials/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.updateVideo
+);
+router.delete(
+  "/tutorials/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.deleteVideo
+);
 
-router.post("/faq", controllers.faq);
+router.post(
+  "/faq",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.faq
+);
 router.get("/faq", controllers.getFaq);
-router.put("/faq/:id", controllers.updateFaq);
-router.delete("/faq/:id", controllers.deleteFaq);
+router.put(
+  "/faq/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.updateFaq
+);
+router.delete(
+  "/faq/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.deleteFaq
+);
 
-router.post("/contact", controllers.kontak);
+router.post(
+  "/contact",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.kontak
+);
 router.get("/contact", controllers.getContact);
-router.put("/contact/:id", controllers.updateContact);
-router.delete("/contact/:id", controllers.deleteContact);
+router.put(
+  "/contact/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.updateContact
+);
+router.delete(
+  "/contact/:id",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.deleteContact
+);
 
 module.exports = router;
