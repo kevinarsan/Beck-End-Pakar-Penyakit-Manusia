@@ -13,6 +13,117 @@ const {
   { createNotification } = require("../utils/notification");
 
 module.exports = {
+  updateId: async (req, res, next) => {
+    try {
+      upload(req, res, async (err) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({ message: "Error Uploading File" });
+        }
+
+        const { username, email, name, phone, city, province, country } =
+          req.body;
+        const byId = parseInt(req.params.id);
+
+        const existingEmail = await user.findFirst({
+          where: {
+            email: email,
+          },
+        });
+
+        if (existingEmail && existingEmail.id !== byId) {
+          return res.status(400).json({ message: "Email is already taken" });
+        }
+
+        const existingUsername = await user.findFirst({
+          where: {
+            username: username,
+          },
+        });
+
+        if (existingUsername && existingUsername.id !== byId) {
+          return res.status(401).json({ message: "Username is already taken" });
+        }
+
+        const existingPhone = await profile.findFirst({
+          where: {
+            phone: phone,
+          },
+        });
+
+        if (existingPhone && existingPhone.userId !== byId) {
+          return res.status(402).json({ message: "Phone is already taken" });
+        }
+
+        const existingProfile = await profile.findUnique({
+          where: {
+            userId: byId,
+          },
+        });
+
+        if (!existingProfile) {
+          return res.status(404).json({ message: "Profile not found" });
+        }
+
+        let pictureUrl = existingProfile.picture;
+
+        if (req.file) {
+          try {
+            const uploadResponse = await imageKit.upload({
+              file: req.file.buffer.toString("base64"),
+              fileName: `${byId}_profile_picture`,
+            });
+            pictureUrl = uploadResponse.url;
+          } catch (error) {
+            console.log(error);
+            return res
+              .status(500)
+              .json({ message: "Error uploading file to ImageKit" });
+          }
+        }
+
+        const updateProfileById = await user.update({
+          where: {
+            id: byId,
+          },
+          data: {
+            username: username || existingProfile.username,
+            email: email || existingProfile.email,
+            profile: {
+              update: {
+                name: name || existingProfile.name,
+                phone: phone || existingProfile.phone,
+                picture: pictureUrl,
+                city: city || existingProfile.city,
+                province: province || existingProfile.province,
+                country: country || existingProfile.country,
+              },
+            },
+          },
+        });
+
+        const profil = exclude(updateProfileById, [
+          "password",
+          "resetToken",
+          "veryficationToken",
+        ]);
+
+        const userId = existingProfile.userId;
+
+        const welcomeMessage = `Selamat, data anda berhasil diupdate`;
+        await createNotification(userId, welcomeMessage);
+
+        res.json({
+          success: "Profile updated successfully",
+          profil,
+        });
+      });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
   update: async (req, res, next) => {
     try {
       upload(req, res, async (err) => {
@@ -71,75 +182,6 @@ module.exports = {
         res.json({
           success: "Profile update successfully",
           data: updateProfile,
-        });
-      });
-    } catch (error) {
-      console.log(error);
-      next(error);
-    }
-  },
-
-  updateId: async (req, res, next) => {
-    try {
-      upload(req, res, async (err) => {
-        if (err) {
-          console.log(err);
-          return res.status(500).json({ message: "Error Uploading File" });
-        }
-
-        const { name, phone, city, province, country } = req.body;
-        const byId = parseInt(req.params.id);
-
-        const existingProfile = await profile.findUnique({
-          where: {
-            userId: byId,
-          },
-        });
-
-        if (!existingProfile) {
-          return res.status(404).json({ message: "Not Found" });
-        }
-
-        let pictureUrl = existingProfile.picture;
-
-        if (req.file) {
-          try {
-            const uploadResponse = await imageKit.upload({
-              file: req.file.buffer.toString("base64"),
-              fileName: `${byId}_profile_picture`,
-            });
-            pictureUrl = uploadResponse.url;
-          } catch (error) {
-            console.log(uploadError);
-            return res
-              .status(500)
-              .json({ message: "Error uploading file to ImageKit" });
-          }
-        }
-
-        const updateProfileById = await profile.update({
-          where: {
-            userId: byId,
-          },
-
-          data: {
-            name: name || existingProfile.name,
-            phone: phone || existingProfile.phone,
-            picture: pictureUrl,
-            city: city || existingProfile.city,
-            province: province || existingProfile.province,
-            country: country || existingProfile.country,
-          },
-        });
-
-        const userId = existingProfile.userId;
-
-        const welcomeMessage = `Selamat, data anda berhasil diupdate`;
-        await createNotification(userId, welcomeMessage);
-
-        res.json({
-          success: "Profile update successfully",
-          data: updateProfileById,
         });
       });
     } catch (error) {
@@ -607,7 +649,7 @@ module.exports = {
 
       res.json({
         success: "User and related data deleted successfully",
-        data: existingUser,
+        existingUser,
       });
     } catch (error) {
       console.log(error);

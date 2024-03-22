@@ -193,7 +193,7 @@ module.exports = {
 
       return res.json({
         success: "Hospitals retrieved successfully",
-        data: hospitals,
+        hospitals,
       });
     } catch (error) {
       console.log(error);
