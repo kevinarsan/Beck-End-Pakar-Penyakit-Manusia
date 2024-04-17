@@ -23,4 +23,8 @@ module.exports = {
   tutorial: prisma.tutorial,
   faq: prisma.faq,
   contact: prisma.contact,
+  biodata: prisma.biodata,
+  experience: prisma.experience,
+  education: prisma.education,
+  symptom: prisma.symptom,
 };

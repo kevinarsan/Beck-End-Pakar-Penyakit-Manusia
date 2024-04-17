@@ -15,7 +15,7 @@ router.post(
   "/create",
   checkToken,
   checkRole.authPage([Roles.ADMIN, Roles.DOKTER]),
-  //   validate(schema.practice),
+  validate(schema.practice),
   controllers.create
 );
 

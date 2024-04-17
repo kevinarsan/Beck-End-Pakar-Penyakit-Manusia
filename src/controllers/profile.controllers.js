@@ -277,6 +277,8 @@ module.exports = {
         }
 
         const {
+          username,
+          email,
           name,
           phone,
           spesialis,
@@ -290,9 +292,39 @@ module.exports = {
 
         const byId = parseInt(req.params.id);
 
+        const existingEmail = await user.findFirst({
+          where: {
+            email: email,
+          },
+        });
+
+        if (existingEmail && existingEmail.id !== byId) {
+          return res.status(400).json({ message: "Email is already taken" });
+        }
+
+        const existingUsername = await user.findFirst({
+          where: {
+            username: username,
+          },
+        });
+
+        if (existingUsername && existingUsername.id !== byId) {
+          return res.status(401).json({ message: "Username is already taken" });
+        }
+
+        const existingPhone = await profileDoctor.findFirst({
+          where: {
+            phone: phone,
+          },
+        });
+
+        if (existingPhone && existingPhone.userId !== byId) {
+          return res.status(402).json({ message: "Phone is already taken" });
+        }
+
         const existingProfile = await profileDoctor.findUnique({
           where: {
-            id: byId,
+            userId: byId,
           },
         });
 
@@ -317,30 +349,42 @@ module.exports = {
           }
         }
 
-        const updateDoctor = await profileDoctor.update({
+        const updateDoctor = await user.update({
           where: {
             id: byId,
           },
           data: {
-            name: name || existingProfile.name,
-            phone: phone || existingProfile.phone,
-            picture: pictureUrl,
-            spesialis: spesialis || existingProfile.spesialis,
-            description: description || existingProfile.description,
-            city: city || existingProfile.city,
-            province: province || existingProfile.province,
-            country: country || existingProfile.country,
-            details: details || existingProfile.details,
-            aboutUs: aboutUs || existingProfile.aboutUs,
+            username: username || existingProfile.username,
+            email: email || existingProfile.email,
+            profileDoctor: {
+              update: {
+                name: name || existingProfile.name,
+                phone: phone || existingProfile.phone,
+                picture: pictureUrl,
+                spesialis: spesialis || existingProfile.spesialis,
+                description: description || existingProfile.description,
+                city: city || existingProfile.city,
+                province: province || existingProfile.province,
+                country: country || existingProfile.country,
+                details: details || existingProfile.details,
+                aboutUs: aboutUs || existingProfile.aboutUs,
+              },
+            },
           },
         });
+
+        const profilDoctor = exclude(updateDoctor, [
+          "password",
+          "resetToken",
+          "veryficationToken",
+        ]);
 
         const userId = existingProfile.userId;
 
         const welcomeMessage = `Selamat, data anda berhasil diupdate`;
         await createNotification(userId, welcomeMessage);
 
-        res.json({ success: "Profile update succesfully", data: updateDoctor });
+        res.json({ success: "Profile update succesfully", profilDoctor });
       });
     } catch (error) {
       console.log(error);
@@ -657,6 +701,125 @@ module.exports = {
     }
   },
 
+  // destroyAdmin: async (req, res, next) => {
+  //   try {
+  //     const userId = parseInt(req.params.id);
+
+  //     const existingUser = await user.findUnique({
+  //       where: {
+  //         id: userId,
+  //       },
+  //       include: {
+  //         profile: true,
+  //         profileDoctor: true,
+  //         notification: true,
+  //       },
+  //     });
+
+  //     if (!existingUser) {
+  //       return res.status(404).json({ message: "User not found" });
+  //     }
+
+  //     // Hapus data terkait berdasarkan peran (role) pengguna
+  //     if (existingUser.role === "user" || existingUser.role === "admin") {
+  //       await notification.deleteMany({
+  //         where: {
+  //           userId: userId,
+  //         },
+  //       });
+
+  //       await profile.deleteMany({
+  //         where: {
+  //           userId: userId,
+  //         },
+  //       });
+  //     } else if (existingUser.role === "dokter") {
+  //       await notification.deleteMany({
+  //         where: {
+  //           userId: userId,
+  //         },
+  //       });
+
+  //       await profileDoctor.deleteMany({
+  //         where: {
+  //           userId: userId,
+  //         },
+  //       });
+
+  //       // Hapus praktek (practice) dan data terkait
+  //       const practiceOnDoctorIds = await practiceOnDoctor.findMany({
+  //         where: {
+  //           doctorId: userId,
+  //         },
+  //         select: {
+  //           id: true,
+  //         },
+  //       });
+
+  //       for (const practiceId of practiceOnDoctorIds) {
+  //         await practiceOnDoctor.delete({
+  //           where: {
+  //             id: practiceId.id,
+  //           },
+  //         });
+  //       }
+
+  //       const practiceIds = practiceOnDoctorIds.map((item) => item.practiceId);
+
+  //       await practice.deleteMany({
+  //         where: {
+  //           id: {
+  //             in: practiceIds,
+  //           },
+  //         },
+  //       });
+
+  //       // Hapus data rumah sakit (hospital) dan data terkait
+  //       const hospitalOnDoctorIds = await hospitalOnDoctor.findMany({
+  //         where: {
+  //           doctorId: userId,
+  //         },
+  //         select: {
+  //           id: true,
+  //         },
+  //       });
+
+  //       for (const hospitalId of hospitalOnDoctorIds) {
+  //         await hospitalOnDoctor.delete({
+  //           where: {
+  //             id: hospitalId.id,
+  //           },
+  //         });
+  //       }
+
+  //       const hospitalIds = hospitalOnDoctorIds.map((item) => item.hospitalId);
+
+  //       await hospital.deleteMany({
+  //         where: {
+  //           id: {
+  //             in: hospitalIds,
+  //           },
+  //         },
+  //       });
+  //     }
+
+  //     // Hapus data pengguna
+  //     await user.delete({
+  //       where: {
+  //         id: userId,
+  //       },
+  //     });
+
+  //     res.json({
+  //       success: "User and related data deleted successfully",
+  //       existingUser,
+  //     });
+  //   } catch (error) {
+  //     console.log(error);
+  //     next(error);
+  //   }
+  // },
+
   getDoctor: async (req, res, next) => {
     try {
       const get = await profileDoctor.findMany({
@@ -680,6 +843,7 @@ module.exports = {
               doctorId: true,
               practice: {
                 select: {
+                  id: true,
                   days: true,
                   open: true,
                   close: true,
@@ -804,6 +968,26 @@ module.exports = {
           rating: {
             select: {
               overalRating: true,
+            },
+          },
+          biodata: {
+            select: {
+              organization: true,
+              language: true,
+            },
+          },
+          experience: {
+            select: {
+              position: true,
+              office: true,
+              year: true,
+            },
+          },
+          education: {
+            select: {
+              name: true,
+              programStudy: true,
+              year: true,
             },
           },
         },

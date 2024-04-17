@@ -8,6 +8,8 @@ const express = require("express"),
   transaction = require("./transaction.route"),
   paymentMethod = require("./payment.method.route"),
   visiMisi = require("./about.us.route"),
+  biodata = require("./biodata.route"),
+  symptom = require("./symptom.route"),
   router = express.Router();
 
 router.use("/auth", auth);
@@ -19,5 +21,7 @@ router.use("/reviews", review);
 router.use("/transaction", transaction);
 router.use("/payment", paymentMethod);
 router.use("/about", visiMisi);
+router.use("/biodata", biodata);
+router.use("/symptom", symptom);
 
 module.exports = router;

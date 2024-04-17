@@ -10,7 +10,7 @@ module.exports = {
     body("doctorId").optional().notEmpty().withMessage("Masukkan doctorId"),
     body("days").notEmpty().withMessage("Masukkan hari praktek (days)"),
     body("open").notEmpty().withMessage("Masukkan jam buka (open)"),
-    body("close").notEmpty().withMessage("Masukkan jam tutup (close)"),
+    // body("close").notEmpty().withMessage("Masukkan jam tutup (close)"),
   ],
 
   hospitals: [

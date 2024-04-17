@@ -18,11 +18,21 @@ router.get(
 );
 router.get("/get-me", checkToken, controllers.meProfile);
 
-router.get("/get-all-doctor", controllers.getAllDoctor);
+router.get(
+  "/get-all-doctor",
+  // checkToken,
+  // checkRole.authPage([Roles.ADMIN]),
+  controllers.getAllDoctor
+);
 
 router.get("/get-doctor-hospitals", controllers.getAllDoctorHospitals);
 
-router.get("/doctor", controllers.getDoctor);
+router.get(
+  "/doctor",
+  // checkToken,
+  // checkRole.authPage([Roles.ADMIN]),
+  controllers.getDoctor
+);
 
 router.get("/doctor/:id", controllers.getDoctorId);
 
@@ -50,8 +60,8 @@ router.put(
 );
 router.put(
   "/update-doctor/:id",
-  //   checkToken,
-  //   checkRole.authPage([Roles.ADMIN]),
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
   controllers.updateDokterId
 );
 //===== API DELETE =====//

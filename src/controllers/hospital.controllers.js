@@ -1,10 +1,4 @@
-const {
-    hospital,
-    profileDoctor,
-    hospitalOnDoctor,
-    user,
-    review,
-  } = require("../models"),
+const { hospital, profileDoctor, hospitalOnDoctor } = require("../models"),
   multer = require("multer"),
   { imageKit } = require("../config");
 const { hospitalDoctor } = require("../validator.schemas/practice.validator");
@@ -329,7 +323,8 @@ module.exports = {
           return res.status(500).json({ message: "Error Uploading Files" });
         }
 
-        const { name, picture, city, province, country, location } = req.body;
+        const { name, picture, city, province, country, location, details } =
+          req.body;
         const byId = req.params.id;
 
         const existingHospital = await hospital.findUnique({
@@ -358,16 +353,18 @@ module.exports = {
           }
         }
 
-        const existingName = await hospital.findFirst({
-          where: {
-            name: name,
-          },
-        });
+        if (name !== existingHospital.name) {
+          const existingName = await hospital.findFirst({
+            where: {
+              name: name,
+            },
+          });
 
-        if (existingName) {
-          return res
-            .status(400)
-            .json({ message: `hospital ${name}, already available` });
+          if (existingName) {
+            return res
+              .status(400)
+              .json({ message: `Hospital ${name}, already available` });
+          }
         }
 
         const hospitals = await hospital.update({
@@ -380,6 +377,7 @@ module.exports = {
             city: city || existingHospital.city,
             province: province || existingHospital.province,
             country: country || existingHospital.country,
+            details: details || existingHospital.details,
             location: location || existingHospital.location,
           },
         });
@@ -431,7 +429,7 @@ module.exports = {
         },
       });
 
-      if (!hospital) {
+      if (!hospitals) {
         return res.status(404).json({ message: "Hospital Not Found" });
       }
 
@@ -441,7 +439,7 @@ module.exports = {
         },
       });
 
-      res.json({ message: "Delete successfully", hospital });
+      res.json({ message: "Delete successfully", hospitals });
     } catch (error) {
       console.log(error);
       next(error);

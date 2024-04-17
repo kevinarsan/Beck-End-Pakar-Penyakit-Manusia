@@ -70,6 +70,9 @@ model ProfileDoctor {
   createdAt         DateTime            @default(now()) @map("created_at")
   updatedAt         DateTime            @updatedAt @map("updated_at")
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  biodata           Biodata[]
+  experience        Experience[]
+  education         Education[]
   practiceDoctor    PracticeOnDoctor[]
   hospitalDoctor    hospitalOnDoctor[]
   review            Review[]
@@ -77,6 +80,44 @@ model ProfileDoctor {
   rating            Rating[]
 
   @@map("profiles_doctor")
+}
+
+model Biodata {
+  id           Int            @id @default(autoincrement())
+  organization String?
+  language     String?
+  doctorId     Int?
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  doctor       ProfileDoctor? @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("biodata")
+}
+
+model Experience {
+  id        Int            @id @default(autoincrement())
+  position  String?
+  office    String?
+  year      String?
+  doctorId  Int?
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+  doctor    ProfileDoctor? @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("experience")
+}
+
+model Education {
+  id           Int            @id @default(autoincrement())
+  name         String?
+  programStudy String?        @map("program_studi")
+  year         String?
+  doctorId     Int?
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  doctor       ProfileDoctor? @relation(fields: [doctorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("education")
 }
 
 model Practice {
@@ -208,6 +249,17 @@ model DetailTransaction {
   updatedAt      DateTime      @updatedAt
 
   @@map("detail_transactions")
+}
+
+// PAKAR
+model Symptom {
+  id        Int      @id @default(autoincrement())
+  code      String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("symptom")
 }
 
 // ABOUT US
