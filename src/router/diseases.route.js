@@ -1,6 +1,6 @@
 const express = require("express"),
   router = express.Router(),
-  controllers = require("../controllers/symptom.controllers"),
+  controllers = require("../controllers/diseases.controllers"),
   { checkToken } = require("../middlewares/check.token"),
   checkRole = require("../middlewares/check.role"),
   { validate } = require("../middlewares/validate");
@@ -17,7 +17,7 @@ router.post(
   controllers.create
 );
 
-router.get("/get", checkToken, controllers.get);
+router.get("/get", controllers.get);
 
 router.get("/get/:id", checkToken, controllers.getId);
 

@@ -27,4 +27,6 @@ module.exports = {
   experience: prisma.experience,
   education: prisma.education,
   symptom: prisma.symptom,
+  diseases: prisma.diseases,
+  ruleBase: prisma.ruleBase,
 };

@@ -10,6 +10,8 @@ const express = require("express"),
   visiMisi = require("./about.us.route"),
   biodata = require("./biodata.route"),
   symptom = require("./symptom.route"),
+  diseases = require("./diseases.route"),
+  ruleBase = require("./rule.base.route"),
   router = express.Router();
 
 router.use("/auth", auth);
@@ -23,5 +25,7 @@ router.use("/payment", paymentMethod);
 router.use("/about", visiMisi);
 router.use("/biodata", biodata);
 router.use("/symptom", symptom);
+router.use("/diseases", diseases);
+router.use("/rule-base", ruleBase);
 
 module.exports = router;

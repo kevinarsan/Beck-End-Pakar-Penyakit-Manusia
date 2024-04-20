@@ -253,14 +253,42 @@ model DetailTransaction {
 
 // PAKAR
 model Symptom {
-  id        Int      @id @default(autoincrement())
-  code      String
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int        @id @default(autoincrement())
+  code        String
+  name        String
+  probability Float?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  ruleBase    RuleBase[]
 
   @@map("symptom")
 }
+
+model Diseases {
+  id          Int        @id @default(autoincrement())
+  name        String
+  code        String
+  picture     String?
+  solution    String?
+  probability Float?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  ruleBase    RuleBase[]
+
+  @@map("diseases")
+}
+
+model RuleBase {
+  id         Int      @id @default(autoincrement())
+  diseasesId Int      @map("diseases_id")
+  symptomId  Int      @map("symptom_id")
+  diseases   Diseases @relation(fields: [diseasesId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  symptom    Symptom  @relation(fields: [symptomId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// PAKAR END
 
 // ABOUT US
 model VisiMisi {

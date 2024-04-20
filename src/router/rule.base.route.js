@@ -1,6 +1,6 @@
 const express = require("express"),
   router = express.Router(),
-  controllers = require("../controllers/symptom.controllers"),
+  controllers = require("../controllers/rule.base.controller"),
   { checkToken } = require("../middlewares/check.token"),
   checkRole = require("../middlewares/check.role"),
   { validate } = require("../middlewares/validate");

@@ -3,16 +3,21 @@ const { symptom } = require("../models");
 module.exports = {
   create: async (req, res, next) => {
     try {
-      const { name, code } = req.body;
+      const { name, probability } = req.body;
 
-      const symptoms = await symptom.create({
+      const existingSymptomsCount = await symptom.count();
+
+      const newSymptomCode = `0${existingSymptomsCount + 1}`.padStart(3, "G");
+
+      const newSymptom = await symptom.create({
         data: {
           name: name,
-          code: code,
+          code: newSymptomCode,
+          probability: parseFloat(probability),
         },
       });
 
-      res.json({ success: "Created succesfully", symptoms });
+      res.json({ success: "Created successfully", symptom: newSymptom });
     } catch (error) {
       console.log(error);
       next(error);
@@ -36,6 +41,7 @@ module.exports = {
           id: true,
           code: true,
           name: true,
+          probability: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -70,6 +76,7 @@ module.exports = {
           id: true,
           name: true,
           code: true,
+          probability: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -85,7 +92,7 @@ module.exports = {
   update: async (req, res, next) => {
     try {
       const byId = parseInt(req.params.id);
-      const { code, name } = req.body;
+      const { code, name, probability } = req.body;
 
       const existingSymptom = await symptom.findUnique({
         where: {
@@ -102,8 +109,9 @@ module.exports = {
           id: byId,
         },
         data: {
-          code: code || existingSymptom.code,
+          // code: code || existingSymptom.code,
           name: name || existingSymptom.name,
+          probability: parseFloat(probability) || existingSymptom.probability,
         },
       });
 
