@@ -1,4 +1,3 @@
-const { message } = require("statuses");
 const { ruleBase, symptom, diseases } = require("../models");
 
 module.exports = {
@@ -45,21 +44,26 @@ module.exports = {
         where: {
           id: req.body.id,
         },
-      });
-
-      if (!rule) {
-        return res.status(404).json({ message: "Not Found" });
-      }
-
-      await ruleBase.findMany({
         select: {
           id: true,
           diseasesId: true,
           symptomId: true,
-          createdAt: true,
-          updatedAt: true,
+          diseases: {
+            select: {
+              name: true,
+            },
+          },
+          symptom: {
+            select: {
+              name: true,
+            },
+          },
         },
       });
+
+      if (!rule) {
+        return res.status(404).json({ message: "Empty" });
+      }
 
       res.json({ success: "Retrieved succesfully", rule });
     } catch (error) {

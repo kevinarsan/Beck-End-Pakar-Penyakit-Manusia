@@ -13,7 +13,7 @@ module.exports = {
           return res.status(500).json({ message: "Error uploading file" });
         }
 
-        let { name, solution, probability } = req.body;
+        let { name, solution } = req.body;
 
         let pictureUrl = null;
 
@@ -45,7 +45,6 @@ module.exports = {
             code: newDiseasesCode,
             picture: pictureUrl,
             solution: solution,
-            probability: parseFloat(probability),
           },
         });
 
@@ -76,7 +75,6 @@ module.exports = {
           code: true,
           picture: true,
           solution: true,
-          probability: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -113,7 +111,6 @@ module.exports = {
           code: true,
           picture: true,
           solution: true,
-          probability: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -134,7 +131,7 @@ module.exports = {
           return res.status(500).json({ message: "Error uploading file" });
         }
 
-        let { name, solution, probability } = req.body;
+        let { name, solution } = req.body;
         const byId = parseInt(req.params.id);
 
         let pictureUrl = null;
@@ -179,8 +176,6 @@ module.exports = {
             name: name || existingDiseases.name,
             picture: pictureUrl || existingDiseases.picture,
             solution: solution || existingDiseases.solution,
-            probability:
-              parseFloat(probability) || existingDiseases.probability,
           },
         });
 

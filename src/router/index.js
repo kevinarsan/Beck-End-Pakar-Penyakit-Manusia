@@ -12,6 +12,7 @@ const express = require("express"),
   symptom = require("./symptom.route"),
   diseases = require("./diseases.route"),
   ruleBase = require("./rule.base.route"),
+  diagnoses = require("./diagnoses.route"),
   router = express.Router();
 
 router.use("/auth", auth);
@@ -27,5 +28,6 @@ router.use("/biodata", biodata);
 router.use("/symptom", symptom);
 router.use("/diseases", diseases);
 router.use("/rule-base", ruleBase);
+router.use("/diagnoses", diagnoses);
 
 module.exports = router;

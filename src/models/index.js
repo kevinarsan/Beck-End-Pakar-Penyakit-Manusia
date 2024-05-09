@@ -29,4 +29,6 @@ module.exports = {
   symptom: prisma.symptom,
   diseases: prisma.diseases,
   ruleBase: prisma.ruleBase,
+  diagnoses: prisma.diagnoses,
+  diagnosesToSymptom: prisma.diagnosesToSymptom,
 };
