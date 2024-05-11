@@ -298,8 +298,8 @@ model Diagnoses {
 model DiagnosesToSymptom {
   id          Int       @id @default(autoincrement())
   diagnosesId Int       @map("diagnoses_id")
-  symptomId   Int       @map("symptom_id")
-  symptom     Symptom   @relation(fields: [symptomId], references: [id])
+  symptomId   Int?      @map("symptom_id")
+  symptom     Symptom?  @relation(fields: [symptomId], references: [id])
   diagnoses   Diagnoses @relation(fields: [diagnosesId], references: [id])
 
   @@map("diagnoses_to_symptom")

@@ -12,4 +12,6 @@ const Roles = {
 
 router.post("/create", controllers.create);
 
+router.get("/get/:id", controllers.getId);
+
 module.exports = router;

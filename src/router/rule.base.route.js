@@ -17,9 +17,9 @@ router.post(
   controllers.create
 );
 
-router.get("/get", checkToken, controllers.get);
+router.get("/get", controllers.get);
 
-router.get("/get/:id", checkToken, controllers.getId);
+router.get("/get/:id", controllers.getId);
 
 router.put(
   "/update/:id",

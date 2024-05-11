@@ -1,3 +1,4 @@
+const { message } = require("statuses");
 const {
   diagnoses,
   diagnosesToSymptom,
@@ -10,14 +11,6 @@ module.exports = {
     try {
       const { name, age, gender, solution, diseasesId, symptomIds } = req.body;
 
-      if (
-        !diseasesId ||
-        !Array.isArray(symptomIds) ||
-        symptomIds.length === 0
-      ) {
-        return res.status(400).json({ message: "Invalid Input" });
-      }
-
       const existingDiseases = await diseases.findUnique({
         where: {
           id: parseInt(diseasesId),
@@ -27,42 +20,48 @@ module.exports = {
       if (!existingDiseases) {
         return res.status(404).json({ message: "Diseases not found" });
       }
+      let diagnosisProbability = 0;
 
-      const existingSymptoms = await symptom.findMany({
-        where: {
-          id: { in: symptomIds.map((id) => parseInt(id)) },
-        },
-      });
+      if (symptomIds && symptomIds.length > 0) {
+        const existingSymptoms = await symptom.findMany({
+          where: {
+            id: { in: symptomIds.map((id) => parseInt(id)) },
+          },
+        });
 
-      if (!existingSymptoms || existingSymptoms.length !== symptomIds.length) {
-        return res
-          .status(404)
-          .json({ message: "One or more SymptomIds not found" });
-      }
+        if (
+          !existingSymptoms ||
+          existingSymptoms.length !== symptomIds.length
+        ) {
+          return res
+            .status(404)
+            .json({ message: "One or more SymptomIds not found" });
+        }
 
-      // Mencari total probabilitas hipotesis H
-      let totalEvidenceProbability = existingSymptoms.reduce(
-        (total, current) => total + (current.probability || 0),
-        0
-      );
-
-      // Mencari nilai semesta P(Hi)
-      let totalHypothesisProbability = existingSymptoms.reduce(
-        (total, current) =>
-          total + (current.probability || 0) / totalEvidenceProbability,
-        0
-      );
-
-      // Mencari probabilitas diagnosis P(HI |E)
-      let diagnosisProbability = existingSymptoms.reduce((total, current) => {
-        const currentSymptomProbability = current.probability || 0;
-        return (
-          total +
-          ((currentSymptomProbability / totalEvidenceProbability) *
-            currentSymptomProbability) /
-            totalHypothesisProbability
+        // Mencari total probabilitas hipotesis H
+        let totalEvidenceProbability = existingSymptoms.reduce(
+          (total, current) => total + (current.probability || 0),
+          0
         );
-      }, 0);
+
+        // Mencari nilai semesta P(Hi)
+        let totalHypothesisProbability = existingSymptoms.reduce(
+          (total, current) =>
+            total + (current.probability || 0) / totalEvidenceProbability,
+          0
+        );
+
+        // Mencari probabilitas diagnosis P(HI |E)
+        diagnosisProbability = existingSymptoms.reduce((total, current) => {
+          const currentSymptomProbability = current.probability || 0;
+          return (
+            total +
+            ((currentSymptomProbability / totalEvidenceProbability) *
+              currentSymptomProbability) /
+              totalHypothesisProbability
+          );
+        }, 0);
+      }
 
       const createdDiagnoses = await diagnoses.create({
         data: {
@@ -75,9 +74,7 @@ module.exports = {
           solution:
             "anak anda beresiko terjangkit stunting. Kami sarankan Anda untuk melakukan pemeriksaan lanjutan ke dokter anak terdekat. cari dokter terdekat disini, dan cari tahu informasi lainnya seputar stunting disini  ",
           diagnosesTo: {
-            create: existingSymptoms.map((symptom) => ({
-              symptomId: symptom.id,
-            })),
+            create: symptomIds.map((id) => ({ symptomId: parseInt(id) })),
           },
         },
         include: {
@@ -92,6 +89,47 @@ module.exports = {
     } catch (error) {
       console.error(error);
       next(error);
+    }
+  },
+  getId: async (req, res, next) => {
+    try {
+      const byId = parseInt(req.params.id);
+      const existingDiagnoses = await diagnoses.findUnique({
+        where: {
+          id: byId,
+        },
+      });
+
+      if (!existingDiagnoses || existingDiagnoses.length === 0) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const diagnose = await diagnoses.findUnique({
+        where: {
+          id: byId,
+        },
+        select: {
+          id: true,
+          name: true,
+          age: true,
+          gender: true,
+          diseasesId: true,
+          probabilityResult: true,
+          status: true,
+          solution: true,
+          description: true,
+          diagnosesTo: {
+            select: {
+              symptomId: true,
+            },
+          },
+        },
+      });
+
+      res.json({ success: "Retreived succesfully", diagnose });
+    } catch (error) {
+      next(error);
+      console.log(error);
     }
   },
 };
