@@ -1,3 +1,5 @@
+const { route } = require("./notification.route");
+
 const express = require("express"),
   router = express.Router(),
   controllers = require("../controllers/diagnoses.controllers"),
@@ -13,5 +15,9 @@ const Roles = {
 router.post("/create", controllers.create);
 
 router.get("/get/:id", controllers.getId);
+
+router.get("/get", controllers.get);
+
+router.delete("/delete", controllers.destroy);
 
 module.exports = router;

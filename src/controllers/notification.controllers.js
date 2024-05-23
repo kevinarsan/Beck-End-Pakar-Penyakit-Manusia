@@ -8,7 +8,7 @@ module.exports = {
       if (!get || get.length === 0)
         return res.status(403).json({ message: "Notification empty" });
 
-      res.json({ success: "Notifications retrieved successfully", data: get });
+      res.json({ success: "Notifications retrieved successfully", get });
     } catch (error) {
       console.log(error);
       next(error);
@@ -22,6 +22,22 @@ module.exports = {
       const getId = await notification.findUnique({
         where: {
           id: parseInt(notificationId),
+        },
+        select: {
+          id: true,
+          message: true,
+          time: true,
+          isRead: true,
+          userId: true,
+          user: {
+            select: {
+              profile: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -60,6 +76,13 @@ module.exports = {
         where: {
           userId: token,
         },
+        select: {
+          id: true,
+          message: true,
+          time: true,
+          isRead: true,
+          userId: true,
+        },
       });
 
       if (!myNotif || myNotif.length === 0)
@@ -67,7 +90,7 @@ module.exports = {
 
       res.json({
         success: "Notifications retrieved successfully",
-        data: myNotif,
+        myNotif,
       });
     } catch (error) {
       console.log(error);
@@ -102,7 +125,7 @@ module.exports = {
 
       res.json({
         success: "Notifications delete successfully",
-        data: existingNotification,
+        existingNotification,
       });
     } catch (error) {
       console.log(error);

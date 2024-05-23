@@ -132,6 +132,74 @@ module.exports = {
       console.log(error);
     }
   },
+
+  get: async (req, res, next) => {
+    try {
+      const existingDiagnoses = await diagnoses.findMany({
+        where: {
+          id: req.body.id,
+        },
+      });
+
+      if (!existingDiagnoses || existingDiagnoses.length === 0) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const diagnose = await diagnoses.findMany({
+        select: {
+          id: true,
+          name: true,
+          age: true,
+          gender: true,
+          diseases: {
+            select: {
+              name: true,
+            },
+          },
+          diagnosesTo: {
+            select: {
+              symptom: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+          probabilityResult: true,
+          status: true,
+        },
+      });
+
+      res.json({ success: "Retrieved succesfully", diagnose });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  destroy: async (req, res, next) => {
+    try {
+      const existingDiagnoses = await diagnosesToSymptom.findMany({
+        where: { id: req.body.id },
+      });
+
+      if (!existingDiagnoses || existingDiagnoses.length === 0) {
+        return res.status(404).json({ message: "Not Found" });
+      }
+
+      const deleteAll = await diagnosesToSymptom.deleteMany({});
+
+      const hapus = await diagnoses.deleteMany({});
+      res.json({
+        success: "Delete succesfully",
+        deleteAll,
+        hapus,
+      });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
 };
 
 // Fungsi untuk mendapatkan status berdasarkan probabilitas diagnosis

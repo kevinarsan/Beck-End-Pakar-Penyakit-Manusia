@@ -371,7 +371,7 @@ module.exports = {
         },
       });
 
-      const data = exclude(users, [
+      const me = exclude(users, [
         "password",
         "resetToken",
         "veryficationToken",
@@ -379,7 +379,7 @@ module.exports = {
 
       res.json({
         success: "Fetch data successfully",
-        data,
+        me,
       });
     } catch (error) {
       console.log(error);
