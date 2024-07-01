@@ -29,5 +29,6 @@ router.use("/symptom", symptom);
 router.use("/diseases", diseases);
 router.use("/rule-base", ruleBase);
 router.use("/diagnoses", diagnoses);
+// contoh
 
 module.exports = router;
