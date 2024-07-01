@@ -31,6 +31,7 @@ model User {
   profileDoctor ProfileDoctor?
   review        Review[]
   notification  Notification[]
+  diagnose      Diagnoses[]
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   Transaction   Transaction[]
@@ -289,6 +290,8 @@ model Diagnoses {
   status            String?
   solution          String?
   description       String?
+  usersId           Int?
+  user              User?                @relation(fields: [usersId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   diseases          Diseases?            @relation(fields: [diseasesId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   diagnosesTo       DiagnosesToSymptom[]
   createdAt         DateTime             @default(now())

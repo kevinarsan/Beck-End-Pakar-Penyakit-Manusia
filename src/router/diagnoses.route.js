@@ -12,12 +12,19 @@ const Roles = {
   DOKTER: "dokter",
 };
 
-router.post("/create", controllers.create);
+router.post("/create", checkToken, controllers.create);
 
-router.get("/get/:id", controllers.getId);
+router.get("/get/:id", checkToken, controllers.getId);
 
-router.get("/get", controllers.get);
+router.get("/get", checkToken, controllers.get);
 
-router.delete("/delete", controllers.destroy);
+router.get("/get-me", checkToken, controllers.getMe);
+
+router.delete(
+  "/delete",
+  checkToken,
+  checkRole.authPage([Roles.ADMIN]),
+  controllers.destroy
+);
 
 module.exports = router;

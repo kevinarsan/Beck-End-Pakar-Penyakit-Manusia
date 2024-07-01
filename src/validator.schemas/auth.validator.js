@@ -36,4 +36,13 @@ module.exports = {
     body("email") || body("username") || body("phone").notEmpty(),
     body("password").notEmpty(),
   ],
+
+  // resetPassword: [
+  //   check("oldPassword")
+  //     .isLength({ min: 6 })
+  //     .withMessage("Old password must be at least 6 characters long"),
+  //   check("newPassword")
+  //     .isLength({ min: 6 })
+  //     .withMessage("New password must be at least 6 characters long"),
+  // ],
 };

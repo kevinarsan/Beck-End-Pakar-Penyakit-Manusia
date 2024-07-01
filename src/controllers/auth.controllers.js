@@ -24,7 +24,6 @@ module.exports = {
 
       const { username, email, password, phone } = req.body;
 
-      // Periksa apakah email sudah terdaftar sebelumnya
       const existingEmail = await user.findFirst({
         where: {
           email: email,
@@ -34,10 +33,8 @@ module.exports = {
         return res.status(403).json({ message: "Your email already exists" });
       }
 
-      // Generate OTP
       const generatedOTP = generateOTP();
 
-      // Simpan data pengguna bersama dengan OTP
       const data = await user.create({
         data: {
           username: username,
@@ -67,7 +64,6 @@ module.exports = {
 
       const accessToken = oauth2Client.getAccessToken();
 
-      // Konfigurasi transporter untuk pengiriman email
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -80,7 +76,6 @@ module.exports = {
         },
       });
 
-      // Konfigurasi email yang akan dikirim
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -88,14 +83,12 @@ module.exports = {
         html: `<p>Hi ${email},</p><p>Your OTP for account verification is: <strong>${generatedOTP}</strong></p>`,
       };
 
-      // Kirim email dengan OTP
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
           console.error("Error sending email:", error);
           return res.status(500).json({ error: "Failed to send OTP email" });
         }
         console.log("Email sent:", info.response);
-        // Kirim respons ke klien
         res.json({
           email: data.email,
           otp: data.validasi,
@@ -134,7 +127,6 @@ module.exports = {
         },
       });
 
-      // jika OTP sudah valid maka akan membuat token
       const token = jwt.sign(
         { id: findUser.id, email: findUser.email, phone: findUser.phone },
         secret_key,
@@ -207,7 +199,7 @@ module.exports = {
       const welcomeMessage = `Selamat datang, ${username}! Terima kasih telah bergabung.`;
       await createNotification(register.id, welcomeMessage);
 
-      const data = exclude(register, [
+      const registerUser = exclude(register, [
         "password",
         "resetToken",
         "veryficationToken",
@@ -215,7 +207,7 @@ module.exports = {
 
       res.json({
         success: "Register successfully",
-        data,
+        registerUser,
       });
     } catch (error) {
       console.log(error);
@@ -330,7 +322,6 @@ module.exports = {
         return res.status(403).json({ message: "Invalid password" });
       }
 
-      // Menentukan role dan mengambil data sesuai role
       let userData;
       if (users.role === "dokter") {
         userData = await profileDoctor.findUnique({
@@ -344,9 +335,6 @@ module.exports = {
 
       const payload = {
         id: users.id,
-        // username: users.username,
-        // email: users.email,
-        // phone: userData.phone,
         role: users.role,
       };
 
@@ -358,6 +346,46 @@ module.exports = {
       });
     } catch (error) {
       console.error(error);
+      next(error);
+    }
+  },
+
+  resetPassword: async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { oldPassword, newPassword } = req.body;
+      const token = req.user.id;
+
+      const existingUser = await user.findUnique({
+        where: { id: token },
+      });
+
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const isPasswordMatch = await verifyHashed(
+        oldPassword,
+        existingUser.password
+      );
+      if (!isPasswordMatch) {
+        return res.status(403).json({ message: "Old password is incorrect" });
+      }
+
+      const hashedPassword = await cryptPassword(newPassword);
+
+      await user.update({
+        where: { id: token },
+        data: { password: hashedPassword },
+      });
+
+      res.json({ success: "Password updated successfully" });
+    } catch (error) {
+      console.error("Error resetting password:", error);
       next(error);
     }
   },

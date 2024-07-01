@@ -20,6 +20,14 @@ router.post(
   controllers.registerAdmin
 );
 router.post("/login", validate(schema.login), controllers.login);
+
+router.put(
+  "/reset-password",
+  checkToken,
+  // validate(schema.resetPassword),
+  controllers.resetPassword
+);
+
 router.get("/me", checkToken, controllers.me);
 router.put("/me", checkToken, controllers.updateMe);
 

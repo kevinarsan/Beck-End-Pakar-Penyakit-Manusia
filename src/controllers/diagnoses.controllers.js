@@ -1,15 +1,17 @@
-const { message } = require("statuses");
 const {
   diagnoses,
   diagnosesToSymptom,
   symptom,
   diseases,
+  user,
 } = require("../models");
 
 module.exports = {
   create: async (req, res, next) => {
     try {
-      const { name, age, gender, solution, diseasesId, symptomIds } = req.body;
+      const { name, age, gender, diseasesId, symptomIds, usersId } = req.body;
+
+      const token = parseInt(req.user.id);
 
       const existingDiseases = await diseases.findUnique({
         where: {
@@ -71,8 +73,7 @@ module.exports = {
           diseasesId: parseInt(diseasesId),
           probabilityResult: diagnosisProbability,
           status: getStatus(diagnosisProbability),
-          solution:
-            "anak anda beresiko terjangkit stunting. Kami sarankan Anda untuk melakukan pemeriksaan lanjutan ke dokter anak terdekat. cari dokter terdekat disini, dan cari tahu informasi lainnya seputar stunting disini  ",
+          usersId: token,
           diagnosesTo: {
             create: symptomIds.map((id) => ({ symptomId: parseInt(id) })),
           },
@@ -91,6 +92,7 @@ module.exports = {
       next(error);
     }
   },
+
   getId: async (req, res, next) => {
     try {
       const byId = parseInt(req.params.id);
@@ -113,16 +115,24 @@ module.exports = {
           name: true,
           age: true,
           gender: true,
-          diseasesId: true,
-          probabilityResult: true,
-          status: true,
-          solution: true,
-          description: true,
-          diagnosesTo: {
+          diseases: {
             select: {
-              symptomId: true,
+              name: true,
+              picture: true,
             },
           },
+          diagnosesTo: {
+            select: {
+              symptom: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+          probabilityResult: true,
+          status: true,
+          createdAt: true,
         },
       });
 
@@ -154,6 +164,7 @@ module.exports = {
           diseases: {
             select: {
               name: true,
+              picture: true,
             },
           },
           diagnosesTo: {
@@ -167,10 +178,58 @@ module.exports = {
           },
           probabilityResult: true,
           status: true,
+          createdAt: true,
         },
       });
 
       res.json({ success: "Retrieved succesfully", diagnose });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  getMe: async (req, res, next) => {
+    try {
+      const token = req.user.id;
+
+      const userDiagnoses = await diagnoses.findMany({
+        where: {
+          usersId: token,
+        },
+        select: {
+          id: true,
+          name: true,
+          age: true,
+          gender: true,
+          diseases: {
+            select: {
+              name: true,
+              picture: true,
+            },
+          },
+          diagnosesTo: {
+            select: {
+              symptom: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+          probabilityResult: true,
+          status: true,
+          createdAt: true,
+        },
+      });
+
+      if (!userDiagnoses || userDiagnoses.length === 0) {
+        return res
+          .status(404)
+          .json({ message: "No diagnoses found for this user" });
+      }
+
+      res.json({ success: "Retrieved successfully", diagnoses: userDiagnoses });
     } catch (error) {
       console.log(error);
       next(error);
