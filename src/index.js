@@ -2,15 +2,16 @@ const express = require("express"),
   { PORT } = require("./config"),
   bodyParser = require("body-parser"),
   router = require("./router"),
-  { errorHandling, succesHandling } = require("./middlewares/error.handling"),
-  app = express();
+  { errorHandling, succesHandling } = require("./middlewares/error.handling");
 
 const cors = require("cors");
+const app = express();
+
+app.use(cors());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json());
-app.use(cors());
 
 app.use("/api/v1", router);
 
