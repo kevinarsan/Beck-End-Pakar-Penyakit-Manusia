@@ -29,6 +29,19 @@ app.get("/", (req, res) => {
   res.send("OK");
 });
 
+// Example routes for testing
+app.post("/test", (req, res) => {
+  res.send("POST request received");
+});
+
+app.put("/test/:id", (req, res) => {
+  res.send("PUT request received");
+});
+
+app.delete("/test/:id", (req, res) => {
+  res.send("DELETE request received");
+});
+
 app.listen(PORT, () => {
   console.log(`Server is up and listening at port : ${PORT}`);
 });
