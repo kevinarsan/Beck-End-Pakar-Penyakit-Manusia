@@ -29,7 +29,6 @@ app.get("/", (req, res) => {
   res.send("OK");
 });
 
-// Example routes for testing
 app.post("/test", (req, res) => {
   res.send("POST request received");
 });

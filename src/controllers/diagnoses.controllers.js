@@ -238,22 +238,26 @@ module.exports = {
 
   destroy: async (req, res, next) => {
     try {
-      const existingDiagnoses = await diagnosesToSymptom.findMany({
-        where: { id: req.body.id },
+      const id = parseInt(req.params.id);
+
+      const existingDiagnoses = await diagnoses.findUnique({
+        where: { id: id },
+        include: { diagnosesTo: true },
       });
 
-      if (!existingDiagnoses || existingDiagnoses.length === 0) {
-        return res.status(404).json({ message: "Not Found" });
+      if (!existingDiagnoses) {
+        return res.status(404).json({ message: "Diagnoses not found" });
       }
 
-      const deleteAll = await diagnosesToSymptom.deleteMany({});
-
-      const hapus = await diagnoses.deleteMany({});
-      res.json({
-        success: "Delete succesfully",
-        deleteAll,
-        hapus,
+      await diagnosesToSymptom.deleteMany({
+        where: { diagnosesId: id },
       });
+
+      await diagnoses.delete({
+        where: { id: id },
+      });
+
+      res.json({ success: "Delete successfully", existingDiagnoses });
     } catch (error) {
       console.log(error);
       next(error);

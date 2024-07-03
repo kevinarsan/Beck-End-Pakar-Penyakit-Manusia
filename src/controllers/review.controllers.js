@@ -1,4 +1,3 @@
-const { over } = require("lodash");
 const { review, user, profileDoctor, rating } = require("../models");
 const { createNotification } = require("../utils/notification");
 

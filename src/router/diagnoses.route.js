@@ -21,9 +21,9 @@ router.get("/get", checkToken, controllers.get);
 router.get("/get-me", checkToken, controllers.getMe);
 
 router.delete(
-  "/delete",
+  "/delete/:id",
   checkToken,
-  checkRole.authPage([Roles.ADMIN]),
+  // checkRole.authPage([Roles.ADMIN]),
   controllers.destroy
 );
 
